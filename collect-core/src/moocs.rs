@@ -1,0 +1,236 @@
+use regex::Regex;
+use reqwest::Client;
+use scraper::Html;
+
+use crate::iniad::{check_logged_in_google, check_logged_in_moocs};
+
+#[derive(Debug, Clone)]
+pub struct Url {
+    pub year: Option<u32>,
+    pub course_id: Option<String>,
+    pub lecture_id: Option<String>,
+    pub page: Option<String>,
+}
+
+impl Url {
+    pub const BASE_URL: &'static str = "https://moocs.iniad.org";
+    pub const COURSE_URL: &'static str = "https://moocs.iniad.org/courses";
+
+    pub fn parse(url: String) -> Self {
+        let url = match url.starts_with("http") {
+            true => url,
+            false => format!("{}{}", Self::BASE_URL, url),
+        };
+        let url = url.parse::<reqwest::Url>().unwrap();
+        let path = url.path_segments().unwrap().collect::<Vec<_>>();
+        let year = path.get(1).map(|s| s.parse::<u32>().unwrap());
+        let course_id = path.get(2).map(|s| s.to_string());
+        let lecture_id = path.get(3).map(|s| s.to_string());
+        let page = path.get(4).map(|s| s.to_string());
+        Self {
+            year,
+            course_id,
+            lecture_id,
+            page,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Course {
+    pub year: u32,
+    pub id: String,
+    pub name: String,
+}
+
+impl Course {
+    pub fn new(year: u32, id: &str, name: &str) -> Self {
+        Self {
+            year,
+            id: id.to_string(),
+            name: name.to_string(),
+        }
+    }
+
+    pub async fn list(client: &Client, year: Option<u32>) -> anyhow::Result<Vec<Self>> {
+        check_logged_in_moocs(client).await??;
+        let url = match year {
+            Some(year) => format!("{}/{}", Url::COURSE_URL, year),
+            None => Url::COURSE_URL.to_string(),
+        };
+        let response = client.get(&url).send().await?;
+        let document = Html::parse_document(&response.text().await?);
+        let courses = document
+            .select(&scraper::Selector::parse(".media").unwrap())
+            .map(|course| {
+                let name = course
+                    .select(&scraper::Selector::parse(".media-body h4.media-heading").unwrap())
+                    .next()
+                    .and_then(|name| Some(name.text().collect::<String>()))
+                    .unwrap();
+                let href = course
+                    .select(&scraper::Selector::parse("a").unwrap())
+                    .next()
+                    .and_then(|href| Some(href.value().attr("href").unwrap().to_string()))
+                    .unwrap();
+                let url = Url::parse(href);
+                Course {
+                    year: url.year.unwrap(),
+                    id: url.course_id.unwrap(),
+                    name,
+                }
+            })
+            .collect();
+        Ok(courses)
+    }
+
+    pub async fn lectures(&self, client: &Client) -> anyhow::Result<Vec<Lecture>> {
+        let response = client.get(&self.url()).send().await?;
+        let document = Html::parse_document(&response.text().await?);
+        let lectures = document
+            .select(&scraper::Selector::parse("ul.sidebar-menu li.treeview").unwrap())
+            .map(|treeview| {
+                let group = treeview
+                    .select(&scraper::Selector::parse("span.sidebar-menu-text").unwrap())
+                    .next()
+                    .and_then(|group| Some(group.text().collect::<String>()))
+                    .unwrap();
+                let lectures = treeview
+                    .select(&scraper::Selector::parse("ul.treeview-menu li").unwrap())
+                    .map(|menu| {
+                        let anchor = menu
+                            .select(&scraper::Selector::parse("a").unwrap())
+                            .next()
+                            .unwrap();
+                        let name = anchor.text().collect::<String>();
+                        let href = anchor.value().attr("href").unwrap();
+                        let url = Url::parse(href.to_string());
+                        Lecture {
+                            course: self,
+                            id: url.lecture_id.unwrap(),
+                            name,
+                            group: group.clone(),
+                        }
+                    })
+                    .collect::<Vec<Lecture>>();
+                lectures
+            })
+            .flatten()
+            .collect();
+        Ok(lectures)
+    }
+
+    pub fn url(&self) -> String {
+        format!("{}/{}/{}", Url::COURSE_URL, self.year, self.id)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Lecture<'a> {
+    pub course: &'a Course,
+    pub id: String,
+    pub name: String,
+    pub group: String,
+}
+
+impl<'a> Lecture<'a> {
+    pub fn url(&self) -> String {
+        format!(
+            "https://moocs.iniad.org/courses/{}/{}/{}",
+            self.course.year, self.course.id, self.id
+        )
+    }
+
+    pub async fn pages(&self, client: &Client) -> anyhow::Result<Vec<LecturePage>> {
+        let response = client.get(&self.url()).send().await?;
+        let current_url = response.url().to_string();
+        let document = Html::parse_document(&response.text().await?);
+        let pagination = document
+            .select(&scraper::Selector::parse("ul.pagination li").unwrap())
+            .collect::<Vec<_>>();
+        let pagination = &pagination[1..pagination.len() - 1];
+        let pages = pagination
+            .iter()
+            .map(|li| {
+                let anchor = li
+                    .select(&scraper::Selector::parse("a").unwrap())
+                    .next()
+                    .unwrap();
+                let title = anchor.attr("title").unwrap().to_string();
+                let href = anchor.value().attr("href").unwrap().to_string();
+                let href = match &*href {
+                    "#" => current_url.clone(),
+                    _ => href,
+                };
+                let url = Url::parse(href);
+                LecturePage {
+                    lecture: self,
+                    page: url.page.unwrap(),
+                    title,
+                }
+            })
+            .collect();
+        Ok(pages)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct LecturePage<'a> {
+    pub lecture: &'a Lecture<'a>,
+    pub page: String,
+    pub title: String,
+}
+
+impl<'a> LecturePage<'a> {
+    pub fn url(&self) -> String {
+        format!(
+            "https://moocs.iniad.org/courses/{}/{}/{}/{}",
+            self.lecture.course.year, self.lecture.course.id, self.lecture.id, self.page
+        )
+    }
+
+    async fn slide(client: &Client, url: &str) -> anyhow::Result<Vec<String>> {
+        let svg_regex = Regex::new(r#"\\x3csvg.*?\\x3c\\/svg\\x3e"#)?;
+        let response = client.get(url).send().await?;
+        let body = response.text().await?;
+        let svgs = svg_regex
+            .find_iter(&body)
+            .map(|m| m.as_str().to_string())
+            .map(|s| unicode_escape::decode(&*s.replace(r"\/", "/")).unwrap())
+            .collect();
+        Ok(svgs)
+    }
+
+    async fn iframes(&self, client: &Client) -> anyhow::Result<Vec<String>> {
+        let embed_url_regex =
+            Regex::new(r#"^https://docs.google.com/presentation/d/.*?/embed\?"#).unwrap();
+        let response = client.get(&self.url()).send().await?;
+        let document = Html::parse_document(&response.text().await?);
+        let iframes = document
+            .select(&scraper::Selector::parse("iframe").unwrap())
+            .map(|iframe| iframe.value().attr("src").unwrap().to_string())
+            .filter(|src| embed_url_regex.is_match(src))
+            .collect::<Vec<_>>();
+        Ok(iframes)
+    }
+
+    pub async fn slides(&self, client: &Client) -> anyhow::Result<Vec<Vec<String>>> {
+        check_logged_in_google(client).await??;
+        let iframes = self.iframes(client).await?;
+        let slides = iframes
+            .iter()
+            .map(|src| Self::slide(client, src))
+            .collect::<Vec<_>>();
+        let slides = futures::future::join_all(slides)
+            .await
+            .into_iter()
+            .flat_map(|result| result)
+            .collect::<Vec<_>>();
+        Ok(slides)
+    }
+
+    pub async fn has_slide(&self, client: &Client) -> anyhow::Result<bool> {
+        let iframes = self.iframes(client).await?;
+        Ok(iframes.len() > 0)
+    }
+}

@@ -12,7 +12,7 @@ async fn login(
     client: &Client,
     credentials: &Credentials,
     form: &Element,
-) -> Result<Response, reqwest::Error> {
+) -> reqwest::Result<Response> {
     let action = form.attr("action").unwrap();
 
     let response = client
@@ -34,22 +34,28 @@ fn extract_signin_form(document: &Html) -> Option<Element> {
         .and_then(|form| Some(form.value().clone()))
 }
 
-pub async fn check_logged_in_moocs(client: &Client) -> Result<bool, reqwest::Error> {
+fn logged_in(success: bool) -> anyhow::Result<()> {
+    match success {
+        true => Ok(()),
+        false => Err(anyhow::anyhow!("Not logged in")),
+    }
+}
+
+pub async fn check_logged_in_moocs(client: &Client) -> reqwest::Result<anyhow::Result<()>> {
     let url = "https://moocs.iniad.org/account";
     let response = client.get(url).send().await?;
-    Ok(response.url().path() == "/account")
+    let success = response.url().path() == "/account";
+    Ok(logged_in(success))
 }
 
-pub async fn check_logged_in_google(client: &Client) -> Result<bool, reqwest::Error> {
+pub async fn check_logged_in_google(client: &Client) -> reqwest::Result<anyhow::Result<()>> {
     let url = "https://myaccount.google.com";
     let response = client.get(url).send().await?;
-    Ok(response.url().domain() == Some("myaccount.google.com"))
+    let success = response.url().domain() == Some("myaccount.google.com");
+    Ok(logged_in(success))
 }
 
-pub async fn login_moocs(
-    client: &Client,
-    credentials: &Credentials,
-) -> Result<bool, reqwest::Error> {
+pub async fn login_moocs(client: &Client, credentials: &Credentials) -> reqwest::Result<bool> {
     let login_url = "https://moocs.iniad.org/auth/iniad";
     let response = client.get(login_url).send().await?;
     let body = response.text().await?;
@@ -58,13 +64,10 @@ pub async fn login_moocs(
     if let Some(form) = form {
         login(client, credentials, &form).await?;
     }
-    check_logged_in_moocs(client).await
+    Ok(check_logged_in_moocs(client).await?.is_ok())
 }
 
-pub async fn login_google(
-    client: &Client,
-    credentials: &Credentials,
-) -> Result<bool, reqwest::Error> {
+pub async fn login_google(client: &Client, credentials: &Credentials) -> reqwest::Result<bool> {
     let login_url = "https://accounts.google.com/samlredirect?domain=iniad.org";
     let response = client.get(login_url).send().await?;
     let body = response.text().await?;
@@ -107,5 +110,5 @@ pub async fn login_google(
     let url = regex.captures(&body).unwrap().get(1).unwrap().as_str();
     client.get(url.replace("&amp;", "&")).send().await?;
 
-    check_logged_in_google(client).await
+    Ok(check_logged_in_google(client).await?.is_ok())
 }
