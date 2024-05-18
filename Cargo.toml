@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "collect-cli",
+    "collect-core",
+]
