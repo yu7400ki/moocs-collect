@@ -81,8 +81,11 @@ pub async fn login_google(client: &Client, credentials: &Credentials) -> reqwest
 
     let form = document
         .select(&scraper::Selector::parse("form[name='saml-post-binding']").unwrap())
-        .next()
-        .unwrap();
+        .next();
+    if form.is_none() {
+        return Ok(false);
+    }
+    let form = form.unwrap();
     let action = form.attr("action").unwrap();
     let saml_response = form
         .select(&scraper::Selector::parse("input[name='SAMLResponse']").unwrap())

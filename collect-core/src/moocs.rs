@@ -1,3 +1,7 @@
+use std::collections::{HashMap, HashSet};
+
+use base64::{engine::general_purpose, Engine};
+use lol_html::{element, HtmlRewriter, Settings};
 use regex::Regex;
 use reqwest::Client;
 use scraper::Html;
@@ -189,7 +193,7 @@ impl<'a> LecturePage<'a> {
         )
     }
 
-    async fn slide(client: &Client, url: &str) -> anyhow::Result<Vec<String>> {
+    async fn slide(client: &Client, url: &str) -> anyhow::Result<Slide> {
         let svg_regex = Regex::new(r#"\\x3csvg.*?\\x3c\\/svg\\x3e"#)?;
         let response = client.get(url).send().await?;
         let body = response.text().await?;
@@ -214,7 +218,7 @@ impl<'a> LecturePage<'a> {
         Ok(iframes)
     }
 
-    pub async fn slides(&self, client: &Client) -> anyhow::Result<Vec<Vec<String>>> {
+    pub async fn slides(&self, client: &Client) -> anyhow::Result<Vec<Slide>> {
         check_logged_in_google(client).await??;
         let iframes = self.iframes(client).await?;
         let slides = iframes
@@ -232,5 +236,156 @@ impl<'a> LecturePage<'a> {
     pub async fn has_slide(&self, client: &Client) -> anyhow::Result<bool> {
         let iframes = self.iframes(client).await?;
         Ok(iframes.len() > 0)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum Mime {
+    Svg,
+    Png,
+    Jpeg,
+    Gif,
+    Webp,
+}
+
+impl Into<&'static str> for Mime {
+    fn into(self) -> &'static str {
+        match self {
+            Mime::Svg => "image/svg+xml",
+            Mime::Png => "image/png",
+            Mime::Jpeg => "image/jpeg",
+            Mime::Gif => "image/gif",
+            Mime::Webp => "image/webp",
+        }
+    }
+}
+
+impl From<&[u8]> for Mime {
+    fn from(bytes: &[u8]) -> Self {
+        match bytes {
+            [0x89, 0x50, 0x4E, 0x47, ..] => Mime::Png,
+            [0xFF, 0xD8, ..] => Mime::Jpeg,
+            [0x47, 0x49, 0x46, 0x38, ..] => Mime::Gif,
+            [0x52, 0x49, 0x46, 0x46, ..] => Mime::Webp,
+            _ => Mime::Svg,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Slide {
+    pub content: Vec<String>,
+}
+
+impl Slide {
+    async fn src_to_base64(src: &str, client: &Client) -> anyhow::Result<String> {
+        let response = client.get(src).send().await?;
+        let bytes = response.bytes().await?;
+        let mime = Mime::from(bytes.as_ref());
+        let mime: &str = mime.into();
+        let base64 = general_purpose::STANDARD.encode(&bytes);
+        let base64 = format!("data:{};base64,{}", mime, base64);
+        Ok(base64)
+    }
+
+    async fn extract_image(body: &str, client: &Client) -> HashMap<String, String> {
+        let image_regex = Regex::new(r#"<image\s+(?:[^>]*?\s+)?xlink:href="([^"]*)""#).unwrap();
+        let hrefs = image_regex
+            .captures_iter(body)
+            .map(|captures| captures.get(1).unwrap().as_str())
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .filter(|href| href.parse::<reqwest::Url>().is_ok())
+            .collect::<Vec<_>>();
+        let base64 = hrefs
+            .iter()
+            .map(|src| Self::src_to_base64(src, client))
+            .collect::<Vec<_>>();
+        let base64 = futures::future::join_all(base64).await;
+        let images = hrefs
+            .into_iter()
+            .zip(base64)
+            .filter_map(|(href, base64)| match base64 {
+                Ok(base64) => Some((href.to_string(), base64)),
+                Err(_) => None,
+            })
+            .collect();
+        images
+    }
+
+    fn embed_image_(slide: &String, images: &HashMap<String, String>) -> anyhow::Result<String> {
+        let mut output = vec![];
+
+        let mut rewriter = HtmlRewriter::new(
+            Settings {
+                element_content_handlers: vec![element!("image", |el| {
+                    if let Some(src) = el.get_attribute("xlink:href") {
+                        if let Some(base64) = images.get(&src) {
+                            el.set_attribute("xlink:href", base64)?;
+                        }
+                    }
+                    Ok(())
+                })],
+                ..Settings::default()
+            },
+            |c: &[u8]| output.extend_from_slice(c),
+        );
+
+        rewriter.write(slide.as_bytes())?;
+        rewriter.end()?;
+
+        let slide = String::from_utf8(output)?;
+        Ok(slide)
+    }
+
+    pub async fn embed_image(&mut self, client: &Client) -> anyhow::Result<()> {
+        let images = self
+            .content
+            .iter()
+            .map(|slide| Self::extract_image(slide, client))
+            .collect::<Vec<_>>();
+        let images = futures::future::join_all(images).await;
+        let images = images.into_iter().flatten().collect::<HashMap<_, _>>();
+        let content = self
+            .content
+            .iter()
+            .map(|slide| Self::embed_image_(slide, &images))
+            .collect::<anyhow::Result<Vec<_>>>()?;
+        self.content = content;
+        Ok(())
+    }
+
+    pub fn iter(&self) -> SlideIter {
+        SlideIter {
+            iter: self.content.iter(),
+        }
+    }
+}
+
+impl IntoIterator for Slide {
+    type Item = String;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.content.into_iter()
+    }
+}
+
+pub struct SlideIter<'a> {
+    iter: std::slice::Iter<'a, String>,
+}
+
+impl<'a> Iterator for SlideIter<'a> {
+    type Item = &'a String;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
+impl FromIterator<String> for Slide {
+    fn from_iter<T: IntoIterator<Item = String>>(iter: T) -> Self {
+        let content = iter.into_iter().collect();
+        Self { content }
     }
 }
