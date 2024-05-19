@@ -2,3 +2,15 @@
 name = "collect-cli"
 version = "0.1.0"
 edition = "2021"
+
+[dependencies]
+collect = { package = "collect-core", path = "../collect-core" }
+anyhow = { workspace = true }
+reqwest = { workspace = true }
+tokio = { workspace = true }
+clap = { version = "4.5.4", features = ["derive"] }
+dialoguer = "0.11.0"
+indicatif = "0.17.8"
+svg2pdf = "0.10.0"
+lopdf = "0.32.0"
+rayon = "1.10.0"
