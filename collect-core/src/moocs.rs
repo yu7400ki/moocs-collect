@@ -129,6 +129,12 @@ impl Course {
     }
 }
 
+impl ToString for Course {
+    fn to_string(&self) -> String {
+        format!("{}", self.name)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Lecture<'a> {
     pub course: &'a Course,
@@ -175,6 +181,12 @@ impl<'a> Lecture<'a> {
             })
             .collect();
         Ok(pages)
+    }
+}
+
+impl<'a> ToString for Lecture<'a> {
+    fn to_string(&self) -> String {
+        format!("{} - {}", self.group, self.name)
     }
 }
 
@@ -239,6 +251,12 @@ impl<'a> LecturePage<'a> {
     }
 }
 
+impl<'a> ToString for LecturePage<'a> {
+    fn to_string(&self) -> String {
+        format!("{}", self.title)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum Mime {
     Svg,
@@ -295,7 +313,7 @@ impl Slide {
             .map(|captures| captures.get(1).unwrap().as_str())
             .collect::<HashSet<_>>()
             .into_iter()
-            .filter(|href| href.parse::<reqwest::Url>().is_ok())
+            .filter(|href| href.starts_with("http") && href.parse::<reqwest::Url>().is_ok())
             .collect::<Vec<_>>();
         let base64 = hrefs
             .iter()
@@ -339,13 +357,8 @@ impl Slide {
     }
 
     pub async fn embed_image(&mut self, client: &Client) -> anyhow::Result<()> {
-        let images = self
-            .content
-            .iter()
-            .map(|slide| Self::extract_image(slide, client))
-            .collect::<Vec<_>>();
-        let images = futures::future::join_all(images).await;
-        let images = images.into_iter().flatten().collect::<HashMap<_, _>>();
+        let contents = self.content.join("\n");
+        let images = Self::extract_image(&contents, client).await;
         let content = self
             .content
             .iter()
