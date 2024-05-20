@@ -71,7 +71,9 @@ impl Course {
                     .select(&scraper::Selector::parse(".media-body h4.media-heading").unwrap())
                     .next()
                     .and_then(|name| Some(name.text().collect::<String>()))
-                    .unwrap();
+                    .unwrap()
+                    .trim()
+                    .to_string();
                 let href = course
                     .select(&scraper::Selector::parse("a").unwrap())
                     .next()
@@ -98,7 +100,9 @@ impl Course {
                     .select(&scraper::Selector::parse("span.sidebar-menu-text").unwrap())
                     .next()
                     .and_then(|group| Some(group.text().collect::<String>()))
-                    .unwrap();
+                    .unwrap()
+                    .trim()
+                    .to_string();
                 let lectures = treeview
                     .select(&scraper::Selector::parse("ul.treeview-menu li").unwrap())
                     .map(|menu| {
@@ -112,7 +116,7 @@ impl Course {
                         Lecture {
                             course: self,
                             id: url.lecture_id.unwrap(),
-                            name,
+                            name: name.trim().to_string(),
                             group: group.clone(),
                         }
                     })
@@ -166,7 +170,7 @@ impl<'a> Lecture<'a> {
                     .select(&scraper::Selector::parse("a").unwrap())
                     .next()
                     .unwrap();
-                let title = anchor.attr("title").unwrap().to_string();
+                let title = anchor.attr("title").unwrap().trim().to_string();
                 let href = anchor.value().attr("href").unwrap().to_string();
                 let href = match &*href {
                     "#" => current_url.clone(),
@@ -205,7 +209,7 @@ impl<'a> LecturePage<'a> {
         )
     }
 
-    async fn slide(client: &Client, url: &str) -> anyhow::Result<Slide> {
+    async fn slide(client: &Client, url: &str) -> anyhow::Result<Vec<String>> {
         let svg_regex = Regex::new(r#"\\x3csvg.*?\\x3c\\/svg\\x3e"#)?;
         let response = client.get(url).send().await?;
         let body = response.text().await?;
@@ -241,6 +245,10 @@ impl<'a> LecturePage<'a> {
             .await
             .into_iter()
             .flat_map(|result| result)
+            .map(|content| Slide {
+                lecture_page: self,
+                content,
+            })
             .collect::<Vec<_>>();
         Ok(slides)
     }
@@ -291,11 +299,12 @@ impl From<&[u8]> for Mime {
 }
 
 #[derive(Debug, Clone)]
-pub struct Slide {
+pub struct Slide<'a> {
+    pub lecture_page: &'a LecturePage<'a>,
     pub content: Vec<String>,
 }
 
-impl Slide {
+impl<'a> Slide<'a> {
     async fn src_to_base64(src: &str, client: &Client) -> anyhow::Result<String> {
         let response = client.get(src).send().await?;
         let bytes = response.bytes().await?;
@@ -356,7 +365,7 @@ impl Slide {
         Ok(slide)
     }
 
-    pub async fn embed_image(&mut self, client: &Client) -> anyhow::Result<()> {
+    pub async fn embed_image(&self, client: &Client) -> anyhow::Result<Self> {
         let contents = self.content.join("\n");
         let images = Self::extract_image(&contents, client).await;
         let content = self
@@ -364,8 +373,10 @@ impl Slide {
             .iter()
             .map(|slide| Self::embed_image_(slide, &images))
             .collect::<anyhow::Result<Vec<_>>>()?;
-        self.content = content;
-        Ok(())
+        Ok(Slide {
+            lecture_page: self.lecture_page,
+            content,
+        })
     }
 
     pub fn iter(&self) -> SlideIter {
@@ -375,7 +386,7 @@ impl Slide {
     }
 }
 
-impl IntoIterator for Slide {
+impl IntoIterator for Slide<'_> {
     type Item = String;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
@@ -393,12 +404,5 @@ impl<'a> Iterator for SlideIter<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         self.iter.next()
-    }
-}
-
-impl FromIterator<String> for Slide {
-    fn from_iter<T: IntoIterator<Item = String>>(iter: T) -> Self {
-        let content = iter.into_iter().collect();
-        Self { content }
     }
 }
