@@ -66,8 +66,9 @@ fn ignore_invalid_char(s: &str) -> String {
 
 fn slide_dir(slide: &Slide) -> String {
     format!(
-        "{}/{}",
+        "{}/{} - {}",
         ignore_invalid_char(&slide.lecture_page.lecture.course.name),
+        ignore_invalid_char(&slide.lecture_page.lecture.group),
         ignore_invalid_char(&slide.lecture_page.lecture.name)
     )
 }
@@ -78,8 +79,8 @@ fn save_slides<P: AsRef<Path>>(slides: &Vec<Slide>, path: P) -> anyhow::Result<(
         let page = ignore_invalid_char(&slide.lecture_page.page);
         let title = ignore_invalid_char(&slide.lecture_page.title);
         let filename = match slides.len() {
-            1 => format!("{}-{}.pdf", page, title),
-            _ => format!("{}-{}({}).pdf", page, title, i + 1),
+            1 => format!("{} - {}.pdf", page, title),
+            _ => format!("{} - {} ({}).pdf", page, title, i + 1),
         };
         let mut pdf = pdf::convert(&slide)?;
         let path = path.as_ref().join(&dir);
@@ -173,7 +174,7 @@ async fn main() -> anyhow::Result<()> {
     };
     let mut course_items = courses
         .iter()
-        .map(|course| course.name.clone())
+        .map(|course| course.to_string())
         .collect::<Vec<_>>();
     course_items.insert(0, underline.apply_to("全てのコース").to_string());
     let course_selection = Select::new()
@@ -207,7 +208,7 @@ async fn main() -> anyhow::Result<()> {
     };
     let mut lecture_items = lectures
         .iter()
-        .map(|lecture| lecture.name.clone())
+        .map(|lecture| lecture.to_string())
         .collect::<Vec<_>>();
     lecture_items.insert(0, underline.apply_to("全ての授業").to_string());
     let lecture_selection = Select::new()
@@ -247,7 +248,7 @@ async fn main() -> anyhow::Result<()> {
     };
     let mut pages_items = pages
         .iter()
-        .map(|page| page.title.clone())
+        .map(|page| page.to_string())
         .collect::<Vec<_>>();
     pages_items.insert(0, underline.apply_to("全てのページ").to_string());
     let page_selection = Select::new()
