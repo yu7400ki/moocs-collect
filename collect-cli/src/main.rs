@@ -1,24 +1,27 @@
 mod pdf;
 
-use std::time::Duration;
+use rayon::prelude::*;
+use std::{
+    fs::create_dir_all,
+    path::{Path, PathBuf},
+    time::Duration,
+};
 
 use clap::Parser;
 use collect::{
     iniad::{login_google, login_moocs, Credentials},
-    moocs::Course,
+    moocs::{Course, LecturePage, Slide},
 };
-use dialoguer::{Input, Password, Select};
+use dialoguer::{console::Style, Input, Password, Select};
 use indicatif::ProgressBar;
 use reqwest::Client;
 
 #[derive(Parser, Debug)]
 struct Cli {
     #[arg(long)]
-    path: Option<String>,
+    path: Option<PathBuf>,
     #[arg(long)]
     year: Option<u32>,
-    #[arg(long)]
-    no_image_embedding: bool,
 }
 
 fn create_client() -> reqwest::Result<Client> {
@@ -51,13 +54,84 @@ impl Drop for Spinner {
     }
 }
 
+fn ignore_invalid_char(s: &str) -> String {
+    s.chars()
+        .map(|c| match c {
+            '/' | '\\' | ':' | '*' | '?' | '"' | '<' | '>' | '|' => '_',
+            _ => c,
+        })
+        .collect()
+}
+
+fn slide_dir(slide: &Slide) -> String {
+    format!(
+        "{}/{}",
+        ignore_invalid_char(&slide.lecture_page.lecture.course.name),
+        ignore_invalid_char(&slide.lecture_page.lecture.name)
+    )
+}
+
+fn save_slides<P: AsRef<Path>>(slides: &Vec<Slide>, path: P) -> anyhow::Result<()> {
+    for (i, slide) in slides.into_iter().enumerate() {
+        let dir = slide_dir(&slide);
+        let page = ignore_invalid_char(&slide.lecture_page.page);
+        let title = ignore_invalid_char(&slide.lecture_page.title);
+        let filename = match slides.len() {
+            1 => format!("{}-{}.pdf", page, title),
+            _ => format!("{}-{}({}).pdf", page, title, i + 1),
+        };
+        let mut pdf = pdf::convert(&slide)?;
+        let path = path.as_ref().join(&dir);
+        create_dir_all(&path)?;
+        let path = path.join(&filename);
+        pdf.save(&path)?;
+    }
+    Ok(())
+}
+
+async fn save_slides_from_pages<'a, P: AsRef<Path> + Sync>(
+    client: &Client,
+    pages: &Vec<LecturePage<'a>>,
+    path: P,
+) -> anyhow::Result<()> {
+    let slides_aggregation = pages
+        .iter()
+        .map(|page| page.slides(client))
+        .collect::<Vec<_>>();
+    let slides_aggregation = futures::future::join_all(slides_aggregation)
+        .await
+        .into_iter()
+        .collect::<anyhow::Result<Vec<Vec<Slide>>>>()?
+        .into_iter()
+        .collect::<Vec<_>>();
+    let slides_aggregation = slides_aggregation
+        .iter()
+        .map(|slides| {
+            let slides = slides
+                .iter()
+                .map(|slide| slide.embed_image(client))
+                .collect::<Vec<_>>();
+            futures::future::join_all(slides)
+        })
+        .collect::<Vec<_>>();
+    let slides_aggregation = futures::future::join_all(slides_aggregation)
+        .await
+        .into_iter()
+        .map(|slides| slides.into_iter().collect::<anyhow::Result<Vec<_>>>())
+        .collect::<anyhow::Result<Vec<_>>>()?;
+    slides_aggregation
+        .par_iter()
+        .try_for_each(|slides| save_slides(slides, path.as_ref()))?;
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let args = Cli::parse();
 
     let client = create_client()?;
     let credentials = {
-        let username: String = Input::new().with_prompt("ユーザ名").interact_text()?;
+        let username: String = Input::new().with_prompt("ユーザー名").interact_text()?;
         let password: String = Password::new().with_prompt("パスワード").interact()?;
         Credentials { username, password }
     };
@@ -70,35 +144,74 @@ async fn main() -> anyhow::Result<()> {
         logged_in
     };
     if !logged_in {
-        eprintln!("ログインに失敗しました\nユーザ名とパスワードを確認してください");
+        eprintln!("ログインに失敗しました\nユーザー名とパスワードを確認してください");
         std::process::exit(1);
     }
+
+    let path = args.path.unwrap_or_else(|| PathBuf::from("."));
+    let underline = Style::new().underlined();
 
     let courses = {
         let s = Spinner::new();
         s.set_message("コースを取得中...");
         Course::list(&client, args.year).await?
     };
+    let mut course_items = courses
+        .iter()
+        .map(|course| course.name.clone())
+        .collect::<Vec<_>>();
+    course_items.insert(0, underline.apply_to("全てのコース").to_string());
     let course_selection = Select::new()
         .with_prompt("コースを選択")
-        .items(&courses)
+        .items(&course_items)
         .default(0)
         .max_length(10)
         .interact()?;
-    let course = &courses[course_selection];
 
+    if course_selection == 0 {
+        for course in courses.iter() {
+            let lectures = course.lectures(&client).await?;
+            let bar = ProgressBar::new(lectures.len() as u64);
+            for lecture in lectures.iter() {
+                let pages = lecture.pages(&client).await?;
+                save_slides_from_pages(&client, &pages, &path).await?;
+                bar.inc(1);
+            }
+            bar.finish();
+        }
+        return Ok(());
+    }
+
+    let course = &courses[course_selection - 1];
     let lectures = {
         let s = Spinner::new();
         s.set_message("授業を取得中...");
         course.lectures(&client).await?
     };
+    let mut lecture_items = lectures
+        .iter()
+        .map(|lecture| lecture.name.clone())
+        .collect::<Vec<_>>();
+    lecture_items.insert(0, underline.apply_to("全ての授業").to_string());
     let lecture_selection = Select::new()
         .with_prompt("授業を選択")
-        .items(&lectures)
+        .items(&lecture_items)
         .default(0)
         .max_length(10)
         .interact()?;
-    let lecture = &lectures[lecture_selection];
+
+    if lecture_selection == 0 {
+        let bar = ProgressBar::new(lectures.len() as u64);
+        for lecture in lectures.iter() {
+            let pages = lecture.pages(&client).await?;
+            save_slides_from_pages(&client, &pages, &path).await?;
+            bar.inc(1);
+        }
+        bar.finish();
+        return Ok(());
+    }
+
+    let lecture = &lectures[lecture_selection - 1];
 
     let pages = {
         let s = Spinner::new();
@@ -113,24 +226,39 @@ async fn main() -> anyhow::Result<()> {
         }
         pages_has_slide
     };
+    let mut pages_items = pages
+        .iter()
+        .map(|page| page.title.clone())
+        .collect::<Vec<_>>();
+    pages_items.insert(0, underline.apply_to("全てのページ").to_string());
     let page_selection = Select::new()
         .with_prompt("ページを選択")
-        .items(&pages)
+        .items(&pages_items)
         .default(0)
         .max_length(10)
         .interact()?;
-    let page = &pages[page_selection];
 
-    {
+    if page_selection == 0 {
         let s = Spinner::new();
         s.set_message("保存中...");
-        let slides = page.slides(&client).await?;
-        let mut slide = slides[0].clone();
-        slide.embed_image(&client).await?;
-        let mut pdf = pdf::convert(&slide)?;
-        pdf.save("output.pdf")?;
-        println!("output.pdf に保存しました");
+        save_slides_from_pages(&client, &pages, &path).await?;
+        return Ok(());
     }
+
+    let page = &pages[page_selection - 1];
+
+    let s = Spinner::new();
+    s.set_message("保存中...");
+    let slides = page.slides(&client).await?;
+    let slides = slides
+        .iter()
+        .map(|slide| slide.embed_image(&client))
+        .collect::<Vec<_>>();
+    let slides = futures::future::join_all(slides)
+        .await
+        .into_iter()
+        .collect::<anyhow::Result<Vec<_>>>()?;
+    save_slides(&slides, &path)?;
 
     Ok(())
 }

@@ -8,6 +8,7 @@ collect = { package = "collect-core", path = "../collect-core" }
 anyhow = { workspace = true }
 reqwest = { workspace = true }
 tokio = { workspace = true }
+futures = { workspace = true }
 clap = { version = "4.5.4", features = ["derive"] }
 dialoguer = "0.11.0"
 indicatif = "0.17.8"

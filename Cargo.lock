@@ -281,6 +281,7 @@ dependencies = [
  "clap",
  "collect-core",
  "dialoguer",
+ "futures",
  "indicatif",
  "lopdf",
  "rayon",
