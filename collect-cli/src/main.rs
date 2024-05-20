@@ -133,15 +133,14 @@ async fn main() -> anyhow::Result<()> {
 
     let client = create_client()?;
     let username: String = Input::new().with_prompt("ユーザー名").interact_text()?;
-    let entry = Entry::new("collect", &username)?;
+    let entry = Entry::new("me.yu7400ki.moocs-collect", &username)?;
     let password: String = match entry.get_password() {
         Ok(password) => password,
-        Err(keyring::Error::NoEntry) => {
+        Err(_) => {
             let password: String = Password::new().with_prompt("パスワード").interact()?;
-            entry.set_password(&password)?;
+            entry.set_password(&password).ok();
             password
-        }
-        Err(e) => return Err(e.into()),
+        },
     };
     let credentials = Credentials { username, password };
 
@@ -154,11 +153,7 @@ async fn main() -> anyhow::Result<()> {
     };
     if !logged_in {
         eprintln!("ログインに失敗しました\nユーザー名とパスワードを確認してください");
-        match entry.delete_password() {
-            Ok(_) => (),
-            Err(keyring::Error::NoEntry) => (),
-            Err(e) => return Err(e.into()),
-        }
+        entry.delete_password().ok();
         std::process::exit(1);
     }
 
