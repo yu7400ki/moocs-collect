@@ -1,5 +1,6 @@
 mod pdf;
 
+use keyring::Entry;
 use rayon::prelude::*;
 use std::{
     fs::create_dir_all,
@@ -130,11 +131,18 @@ async fn main() -> anyhow::Result<()> {
     let args = Cli::parse();
 
     let client = create_client()?;
-    let credentials = {
-        let username: String = Input::new().with_prompt("ユーザー名").interact_text()?;
-        let password: String = Password::new().with_prompt("パスワード").interact()?;
-        Credentials { username, password }
+    let username: String = Input::new().with_prompt("ユーザー名").interact_text()?;
+    let entry = Entry::new("collect", &username)?;
+    let password: String = match entry.get_password() {
+        Ok(password) => password,
+        Err(keyring::Error::NoEntry) => {
+            let password: String = Password::new().with_prompt("パスワード").interact()?;
+            entry.set_password(&password)?;
+            password
+        }
+        Err(e) => return Err(e.into()),
     };
+    let credentials = Credentials { username, password };
 
     let logged_in = {
         let s = Spinner::new();
@@ -145,14 +153,18 @@ async fn main() -> anyhow::Result<()> {
     };
     if !logged_in {
         eprintln!("ログインに失敗しました\nユーザー名とパスワードを確認してください");
+        match entry.delete_password() {
+            Ok(_) => (),
+            Err(keyring::Error::NoEntry) => (),
+            Err(e) => return Err(e.into()),
+        }
         std::process::exit(1);
     }
 
     let path = args.path.unwrap_or_else(|| PathBuf::from("."));
     let underline = Style::new().underlined();
-    let progress_template = ProgressStyle::with_template(
-        "{percent:>3}% {bar:40} {pos:>2}/{len:2} {msg}",
-    ).unwrap();
+    let progress_template =
+        ProgressStyle::with_template("{percent:>3}% {bar:40} {pos:>2}/{len:2} {msg}").unwrap();
 
     let courses = {
         let s = Spinner::new();
