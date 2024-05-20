@@ -13,7 +13,7 @@ use collect::{
     moocs::{Course, LecturePage, Slide},
 };
 use dialoguer::{console::Style, Input, Password, Select};
-use indicatif::ProgressBar;
+use indicatif::{ProgressBar, ProgressStyle};
 use reqwest::Client;
 
 #[derive(Parser, Debug)]
@@ -150,6 +150,9 @@ async fn main() -> anyhow::Result<()> {
 
     let path = args.path.unwrap_or_else(|| PathBuf::from("."));
     let underline = Style::new().underlined();
+    let progress_template = ProgressStyle::with_template(
+        "{percent:>3}% {bar:40} {pos:>2}/{len:2} {msg}",
+    ).unwrap();
 
     let courses = {
         let s = Spinner::new();
@@ -172,7 +175,9 @@ async fn main() -> anyhow::Result<()> {
         for course in courses.iter() {
             let lectures = course.lectures(&client).await?;
             let bar = ProgressBar::new(lectures.len() as u64);
+            bar.set_style(progress_template.clone());
             for lecture in lectures.iter() {
+                bar.set_message(format!("{}", lecture.name));
                 let pages = lecture.pages(&client).await?;
                 save_slides_from_pages(&client, &pages, &path).await?;
                 bar.inc(1);
@@ -202,7 +207,9 @@ async fn main() -> anyhow::Result<()> {
 
     if lecture_selection == 0 {
         let bar = ProgressBar::new(lectures.len() as u64);
+        bar.set_style(progress_template.clone());
         for lecture in lectures.iter() {
+            bar.set_message(format!("{}", lecture.name));
             let pages = lecture.pages(&client).await?;
             save_slides_from_pages(&client, &pages, &path).await?;
             bar.inc(1);
