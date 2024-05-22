@@ -140,7 +140,7 @@ async fn main() -> anyhow::Result<()> {
             let password: String = Password::new().with_prompt("パスワード").interact()?;
             entry.set_password(&password).ok();
             password
-        },
+        }
     };
     let credentials = Credentials { username, password };
 
@@ -164,16 +164,16 @@ async fn main() -> anyhow::Result<()> {
 
     let courses = {
         let s = Spinner::new();
-        s.set_message("コースを取得中...");
+        s.set_message("科目を取得中...");
         Course::list(&client, args.year).await?
     };
     let mut course_items = courses
         .iter()
         .map(|course| course.to_string())
         .collect::<Vec<_>>();
-    course_items.insert(0, underline.apply_to("全てのコース").to_string());
+    course_items.insert(0, underline.apply_to("全ての科目").to_string());
     let course_selection = Select::new()
-        .with_prompt("コースを選択")
+        .with_prompt("科目を選択")
         .items(&course_items)
         .default(0)
         .max_length(10)
