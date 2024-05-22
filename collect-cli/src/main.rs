@@ -111,7 +111,7 @@ async fn save_slides_from_pages<'a, P: AsRef<Path> + Sync>(
         .map(|slides| {
             let slides = slides
                 .iter()
-                .map(|slide| slide.embed_image(client))
+                .map(|slide| slide.embed_contents(client))
                 .collect::<Vec<_>>();
             futures::future::join_all(slides)
         })
@@ -267,7 +267,7 @@ async fn main() -> anyhow::Result<()> {
     let slides = page.slides(&client).await?;
     let slides = slides
         .iter()
-        .map(|slide| slide.embed_image(&client))
+        .map(|slide| slide.embed_contents(&client))
         .collect::<Vec<_>>();
     let slides = futures::future::join_all(slides)
         .await

@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use base64::{engine::general_purpose, Engine};
-use lol_html::{element, HtmlRewriter, Settings};
+use lol_html::{element, html_content::ContentType, HtmlRewriter, Settings};
 use regex::Regex;
 use reqwest::Client;
 use scraper::Html;
@@ -340,7 +340,7 @@ impl<'a> Slide<'a> {
         images
     }
 
-    fn embed_image_(slide: &String, images: &HashMap<String, String>) -> anyhow::Result<String> {
+    fn embed_images(html: &str, images: &HashMap<String, String>) -> anyhow::Result<String> {
         let mut output = vec![];
 
         let mut rewriter = HtmlRewriter::new(
@@ -358,20 +358,52 @@ impl<'a> Slide<'a> {
             |c: &[u8]| output.extend_from_slice(c),
         );
 
-        rewriter.write(slide.as_bytes())?;
+        rewriter.write(html.as_bytes())?;
         rewriter.end()?;
 
-        let slide = String::from_utf8(output)?;
-        Ok(slide)
+        let html = String::from_utf8(output)?;
+        Ok(html)
     }
 
-    pub async fn embed_image(&self, client: &Client) -> anyhow::Result<Self> {
-        let contents = self.content.join("\n");
-        let images = Self::extract_image(&contents, client).await;
+    pub fn embed_texts(html: &str) -> anyhow::Result<String> {
+        let mut output = vec![];
+
+        let mut rewriter = HtmlRewriter::new(
+            Settings {
+                element_content_handlers: vec![element!("g[role='img'][aria-label]", |el| {
+                    if let Some(aria_label) = el.get_attribute("aria-label") {
+                        el.append(
+                            "<text stroke='none' fill='transparent' transform='scale(0.01)'>",
+                            ContentType::Html,
+                        );
+                        el.append(&aria_label, ContentType::Text);
+                        el.append("</text>", ContentType::Html);
+                    }
+                    Ok(())
+                })],
+                ..Settings::default()
+            },
+            |c: &[u8]| output.extend_from_slice(c),
+        );
+
+        rewriter.write(html.as_bytes())?;
+        rewriter.end()?;
+
+        let html = String::from_utf8(output)?;
+        Ok(html)
+    }
+
+    pub async fn embed_contents(&self, client: &Client) -> anyhow::Result<Self> {
+        let html = self.content.join("\n");
+        let images = Self::extract_image(&html, client).await;
         let content = self
             .content
             .iter()
-            .map(|slide| Self::embed_image_(slide, &images))
+            .map(|slide| {
+                let slide = Self::embed_images(slide, &images)?;
+                let slide = Self::embed_texts(&slide)?;
+                Ok(slide)
+            })
             .collect::<anyhow::Result<Vec<_>>>()?;
         Ok(Slide {
             lecture_page: self.lecture_page,
