@@ -2,17 +2,25 @@ use collect::moocs::Slide;
 use lopdf::dictionary;
 use lopdf::{Document, Object};
 use rayon::prelude::*;
-use svg2pdf::{convert_str, Options};
+use svg2pdf::{
+    to_pdf,
+    usvg::{fontdb, Options, Tree},
+    ConversionOptions, PageOptions,
+};
 
 pub fn convert(slide: &Slide) -> anyhow::Result<Document> {
+    let mut db = fontdb::Database::new();
+    db.load_system_fonts();
+    let options = Options::default();
     let documents = slide
         .content
         .par_iter()
         .map(|src| {
-            let options = Options::default();
-            convert_str(src, options)
-                .map_err(anyhow::Error::from)
-                .and_then(|data| Document::load_mem(&data).map_err(anyhow::Error::from))
+            let conversion_options = ConversionOptions::default();
+            let page_options = PageOptions::default();
+            let tree = Tree::from_str(src, &options, &db).unwrap();
+            let pdf = to_pdf(&tree, conversion_options, page_options, &db);
+            Document::load_mem(&pdf).map_err(anyhow::Error::from)
         })
         .collect::<anyhow::Result<Vec<_>>>()?;
 
