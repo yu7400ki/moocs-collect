@@ -104,6 +104,41 @@ pub async fn login_google(client: &Client, credentials: &Credentials) -> reqwest
         .await?;
 
     let body = response.text().await?;
+    let document = Html::parse_document(&body);
+    let form = document
+        .select(&scraper::Selector::parse("form[name='hiddenpost']").unwrap())
+        .next();
+    if form.is_none() {
+        return Ok(false);
+    }
+    let form = form.unwrap();
+    let action = form.attr("action").unwrap();
+    let relay_state = form
+        .select(&scraper::Selector::parse("input[name='RelayState']").unwrap())
+        .next()
+        .and_then(|input| Some(input.value().attr("value").unwrap()))
+        .unwrap();
+    let saml_response = form
+        .select(&scraper::Selector::parse("input[name='SAMLResponse']").unwrap())
+        .next()
+        .and_then(|input| Some(input.value().attr("value").unwrap()))
+        .unwrap();
+    let trampoline = form
+        .select(&scraper::Selector::parse("input[name='trampoline']").unwrap())
+        .next()
+        .and_then(|input| Some(input.value().attr("value").unwrap()))
+        .unwrap();
+    let response = client
+        .post(action)
+        .form(&[
+            ("RelayState", relay_state),
+            ("SAMLResponse", saml_response),
+            ("trampoline", trampoline),
+        ])
+        .send()
+        .await?;
+
+    let body = response.text().await?;
     let regex = Regex::new(r#"<a\s+(?:[^>]*?\s+)?href="([^"]*)""#).unwrap();
     let href = regex.captures(&body).unwrap().get(1).unwrap().as_str();
     let response = client.get(href.replace("&amp;", "&")).send().await?;
