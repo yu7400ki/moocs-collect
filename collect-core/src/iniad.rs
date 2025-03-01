@@ -1,6 +1,6 @@
 use regex::Regex;
 use reqwest::{Client, Response};
-use scraper::{node::Element, Html};
+use scraper::Html;
 
 #[derive(Debug, Clone)]
 pub struct Credentials {
@@ -11,10 +11,8 @@ pub struct Credentials {
 async fn login(
     client: &Client,
     credentials: &Credentials,
-    form: &Element,
+    action: &str,
 ) -> reqwest::Result<Response> {
-    let action = form.attr("action").unwrap();
-
     let response = client
         .post(action)
         .form(&[
@@ -27,11 +25,20 @@ async fn login(
     Ok(response)
 }
 
-fn extract_signin_form(document: &Html) -> Option<Element> {
+fn extract_element_attribute(document: &Html, query: &str, attribute: &str) -> Option<String> {
     document
-        .select(&scraper::Selector::parse("form.form-signin").unwrap())
+        .select(&scraper::Selector::parse(query).unwrap())
         .next()
-        .and_then(|form| Some(form.value().clone()))
+        .and_then(|element| Some(element.value().clone()))
+        .and_then(|element| element.attr(attribute).map(|value| value.to_string()))
+}
+
+fn extract_form_action(document: &Html, query: &str) -> Option<String> {
+    extract_element_attribute(document, query, "action")
+}
+
+fn extract_input_value(document: &Html, query: &str) -> Option<String> {
+    extract_element_attribute(document, query, "value")
 }
 
 fn logged_in(success: bool) -> anyhow::Result<()> {
@@ -60,9 +67,9 @@ pub async fn login_moocs(client: &Client, credentials: &Credentials) -> reqwest:
     let response = client.get(login_url).send().await?;
     let body = response.text().await?;
     let document = Html::parse_document(&body);
-    let form = extract_signin_form(&document);
-    if let Some(form) = form {
-        login(client, credentials, &form).await?;
+    let action = extract_form_action(&document, "form.form-signin");
+    if let Some(action) = action {
+        login(client, credentials, &action).await?;
     }
     Ok(check_logged_in_moocs(client).await?.is_ok())
 }
@@ -72,71 +79,52 @@ pub async fn login_google(client: &Client, credentials: &Credentials) -> reqwest
     let response = client.get(login_url).send().await?;
     let body = response.text().await?;
     let mut document = Html::parse_document(&body);
-    let form = extract_signin_form(&document);
-    if let Some(form) = form {
-        let response = login(client, credentials, &form).await?;
+    let action = extract_form_action(&document, "form.form-signin");
+    if let Some(action) = action {
+        let response = login(client, credentials, &action).await?;
         let body = response.text().await?;
         document = Html::parse_document(&body);
     }
 
-    let form = document
-        .select(&scraper::Selector::parse("form[name='saml-post-binding']").unwrap())
-        .next();
-    if form.is_none() {
+    let action = extract_form_action(&document, "form[name='saml-post-binding']");
+    let saml_response = extract_input_value(&document, "input[name='SAMLResponse']");
+    let relay_state = extract_input_value(&document, "input[name='RelayState']");
+    let response = if let (Some(action), Some(saml_response), Some(relay_state)) =
+        (action, saml_response, relay_state)
+    {
+        client
+            .post(&action)
+            .form(&[
+                ("SAMLResponse", &saml_response),
+                ("RelayState", &relay_state),
+            ])
+            .send()
+            .await?
+    } else {
         return Ok(false);
-    }
-    let form = form.unwrap();
-    let action = form.attr("action").unwrap();
-    let saml_response = form
-        .select(&scraper::Selector::parse("input[name='SAMLResponse']").unwrap())
-        .next()
-        .and_then(|input| Some(input.value().attr("value").unwrap()))
-        .unwrap();
-    let relay_state = form
-        .select(&scraper::Selector::parse("input[name='RelayState']").unwrap())
-        .next()
-        .and_then(|input| Some(input.value().attr("value").unwrap()))
-        .unwrap();
-    let response = client
-        .post(action)
-        .form(&[("SAMLResponse", saml_response), ("RelayState", relay_state)])
-        .send()
-        .await?;
+    };
 
     let body = response.text().await?;
     let document = Html::parse_document(&body);
-    let form = document
-        .select(&scraper::Selector::parse("form[name='hiddenpost']").unwrap())
-        .next();
-    if form.is_none() {
+    let action = extract_form_action(&document, "form[name='hiddenpost']");
+    let relay_state = extract_input_value(&document, "input[name='RelayState']");
+    let saml_response = extract_input_value(&document, "input[name='SAMLResponse']");
+    let trampoline = extract_input_value(&document, "input[name='trampoline']");
+    let response = if let (Some(action), Some(relay_state), Some(saml_response), Some(trampoline)) =
+        (action, relay_state, saml_response, trampoline)
+    {
+        client
+            .post(&action)
+            .form(&[
+                ("RelayState", &relay_state),
+                ("SAMLResponse", &saml_response),
+                ("trampoline", &trampoline),
+            ])
+            .send()
+            .await?
+    } else {
         return Ok(false);
-    }
-    let form = form.unwrap();
-    let action = form.attr("action").unwrap();
-    let relay_state = form
-        .select(&scraper::Selector::parse("input[name='RelayState']").unwrap())
-        .next()
-        .and_then(|input| Some(input.value().attr("value").unwrap()))
-        .unwrap();
-    let saml_response = form
-        .select(&scraper::Selector::parse("input[name='SAMLResponse']").unwrap())
-        .next()
-        .and_then(|input| Some(input.value().attr("value").unwrap()))
-        .unwrap();
-    let trampoline = form
-        .select(&scraper::Selector::parse("input[name='trampoline']").unwrap())
-        .next()
-        .and_then(|input| Some(input.value().attr("value").unwrap()))
-        .unwrap();
-    let response = client
-        .post(action)
-        .form(&[
-            ("RelayState", relay_state),
-            ("SAMLResponse", saml_response),
-            ("trampoline", trampoline),
-        ])
-        .send()
-        .await?;
+    };
 
     let body = response.text().await?;
     let regex = Regex::new(r#"<a\s+(?:[^>]*?\s+)?href="([^"]*)""#).unwrap();
