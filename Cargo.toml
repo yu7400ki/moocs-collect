@@ -2,6 +2,7 @@
 members = [
     "collect-cli",
     "collect-core",
+    "src-tauri",
 ]
 default-members = ["collect-cli"]
 resolver = "2"

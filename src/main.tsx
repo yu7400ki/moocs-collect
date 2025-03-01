@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import App from "./app";
 
 const root = document.getElementById("root");
 
@@ -9,6 +10,6 @@ if (root === null) {
 
 createRoot(root).render(
   <StrictMode>
-    <h1>Hello, world!</h1>
+    <App />
   </StrictMode>,
 );
