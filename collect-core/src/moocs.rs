@@ -57,7 +57,9 @@ impl Course {
     }
 
     pub async fn list(client: &Client, year: Option<u32>) -> anyhow::Result<Vec<Self>> {
-        check_logged_in_moocs(client).await??;
+        if !check_logged_in_moocs(client).await? {
+            return Err(anyhow::anyhow!("Not logged in"));
+        }
         let url = match year {
             Some(year) => format!("{}/{}", Url::COURSE_URL, year),
             None => Url::COURSE_URL.to_string(),
@@ -235,7 +237,9 @@ impl<'a> LecturePage<'a> {
     }
 
     pub async fn slides(&self, client: &Client) -> anyhow::Result<Vec<Slide>> {
-        check_logged_in_google(client).await??;
+        if !check_logged_in_google(client).await? {
+            return Err(anyhow::anyhow!("Not logged in"));
+        }
         let iframes = self.iframes(client).await?;
         let slides = iframes
             .iter()
