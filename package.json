@@ -16,11 +16,14 @@
   },
   "dependencies": {
     "@ark-ui/react": "^4.9.2",
+    "@conform-to/react": "^1.2.2",
+    "@conform-to/zod": "^1.2.2",
     "@tanstack/react-router": "^1.112.0",
     "@tauri-apps/api": "^2.3.0",
     "jotai": "^2.12.1",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
