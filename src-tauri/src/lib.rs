@@ -1,3 +1,4 @@
+use std::sync::Mutex;
 use tauri::{Builder, Manager};
 
 mod command;
@@ -20,9 +21,14 @@ pub fn run() {
                 )?;
             }
             app.manage(state::ClientState::new()?);
+            app.manage(Mutex::new(state::CourseState::default()));
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![greet, command::login::login])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            command::login::login,
+            command::get_courses::get_courses
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -1,3 +1,6 @@
+use collect::moocs::Course;
+use std::collections::HashMap;
+
 pub struct ClientState(pub reqwest::Client);
 
 impl ClientState {
@@ -9,3 +12,6 @@ impl ClientState {
         Ok(Self(client))
     }
 }
+
+#[derive(Default)]
+pub struct CourseState(pub HashMap<String, Course>);
