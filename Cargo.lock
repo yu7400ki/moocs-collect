@@ -168,7 +168,9 @@ checksum = "27a4bd113ab6da4cd0f521068a6e2ee1065eab54107266a11835d02c8ec86a37"
 name = "app"
 version = "0.2.1"
 dependencies = [
+ "collect-core",
  "log",
+ "reqwest",
  "serde",
  "serde_json",
  "tauri",
