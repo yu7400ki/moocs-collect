@@ -21,7 +21,8 @@
         "noUndeclaredVariables": "off"
       },
       "performance": {
-        "noBarrelFile": "off"
+        "noBarrelFile": "off",
+        "noReExportAll": "off"
       },
       "style": {
         "noNamespace": "off",
