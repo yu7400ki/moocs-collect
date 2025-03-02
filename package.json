@@ -18,6 +18,7 @@
     "@ark-ui/react": "^4.9.2",
     "@tanstack/react-router": "^1.112.0",
     "@tauri-apps/api": "^2.3.0",
+    "jotai": "^2.12.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
