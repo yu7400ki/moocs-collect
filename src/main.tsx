@@ -2,7 +2,7 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import { JotaiProvider } from "./components/ui/providers/jotai";
+import { Providers } from "./components/providers";
 import { routeTree } from "./routeTree.gen";
 
 // Create a new router instance
@@ -27,9 +27,9 @@ if (rootElement && !rootElement.innerHTML) {
   const root = createRoot(rootElement);
   root.render(
     <StrictMode>
-      <JotaiProvider>
+      <Providers>
         <RouterProvider router={router} />
-      </JotaiProvider>
+      </Providers>
     </StrictMode>,
   );
 }

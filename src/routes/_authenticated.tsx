@@ -1,4 +1,4 @@
-import { store } from "@/components/ui/providers/jotai";
+import { store } from "@/components/providers/jotai";
 import { authenticatedAtom } from "@/features/auth/atoms/authenticated";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 

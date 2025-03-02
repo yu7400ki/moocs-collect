@@ -1,7 +1,7 @@
 import { login } from "@/command/login";
+import { store } from "@/components/providers/jotai";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
-import { store } from "@/components/ui/providers/jotai";
 import { useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
 import { useNavigate } from "@tanstack/react-router";
