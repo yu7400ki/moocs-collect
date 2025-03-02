@@ -8,7 +8,7 @@
   "formatter": { "enabled": true, "useEditorconfig": true },
   "organizeImports": { "enabled": true },
   "files": {
-    "ignore": ["public", "create-style-context.tsx"]
+    "ignore": ["public", "create-style-context.tsx", "routeTree.gen.ts"]
   },
   "linter": {
     "enabled": true,
@@ -47,5 +47,19 @@
   },
   "json": {
     "parser": { "allowComments": true }
-  }
+  },
+  "overrides": [
+    {
+      "include": ["src/routes/**/*"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useFilenamingConvention": {
+              "level": "off"
+            }
+          }
+        }
+      }
+    }
+  ]
 }
