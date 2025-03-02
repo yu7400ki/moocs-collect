@@ -19,8 +19,6 @@ const schema = z.object({
     .nonempty("パスワードを入力してください"),
 });
 
-type Schema = z.infer<typeof schema>;
-
 async function loginAction(
   navigation: ReturnType<typeof useNavigate>,
   _: unknown,
@@ -56,7 +54,6 @@ export function LoginForm() {
     undefined,
   );
   const [form, fields] = useForm({
-    defaultValue: lastResult?.initialValue as Schema,
     lastResult,
     onValidate({ formData }) {
       return parseWithZod(formData, { schema });
@@ -80,6 +77,9 @@ export function LoginForm() {
           key={fields.username.key}
           defaultValue={fields.username.initialValue}
           name={fields.username.name}
+          className={css({
+            fontFamily: "latin",
+          })}
         />
         {fields.username.errors?.map((error) => (
           <Field.ErrorText key={error}>{error}</Field.ErrorText>
@@ -92,6 +92,9 @@ export function LoginForm() {
           key={fields.password.key}
           defaultValue={fields.password.initialValue}
           name={fields.password.name}
+          className={css({
+            fontFamily: "latin",
+          })}
         />
         {fields.password.errors?.map((error) => (
           <Field.ErrorText key={error}>{error}</Field.ErrorText>
