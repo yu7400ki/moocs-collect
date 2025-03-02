@@ -8,7 +8,7 @@
   "formatter": { "enabled": true, "useEditorconfig": true },
   "organizeImports": { "enabled": true },
   "files": {
-    "ignore": ["public"]
+    "ignore": ["public", "create-style-context.tsx"]
   },
   "linter": {
     "enabled": true,
