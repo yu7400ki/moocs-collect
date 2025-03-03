@@ -1,4 +1,7 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::Arc,
+};
 
 use base64::{engine::general_purpose, Engine};
 use lol_html::{element, html_content::ContentType, HtmlRewriter, Settings};
@@ -93,6 +96,7 @@ impl Course {
     }
 
     pub async fn lectures(&self, client: &Client) -> anyhow::Result<Vec<Lecture>> {
+        let course = Arc::new(self.clone());
         let response = client.get(&self.url()).send().await?;
         let document = Html::parse_document(&response.text().await?);
         let lectures = document
@@ -116,7 +120,7 @@ impl Course {
                         let href = anchor.value().attr("href").unwrap();
                         let url = Url::parse(href.to_string());
                         Lecture {
-                            course: self,
+                            course: Arc::clone(&course),
                             id: url.lecture_id.unwrap(),
                             name: name.trim().to_string(),
                             group: group.clone(),
@@ -142,14 +146,14 @@ impl ToString for Course {
 }
 
 #[derive(Debug, Clone)]
-pub struct Lecture<'a> {
-    pub course: &'a Course,
+pub struct Lecture {
+    pub course: Arc<Course>,
     pub id: String,
     pub name: String,
     pub group: String,
 }
 
-impl<'a> Lecture<'a> {
+impl Lecture {
     pub fn url(&self) -> String {
         format!(
             "https://moocs.iniad.org/courses/{}/{}/{}",
@@ -158,6 +162,7 @@ impl<'a> Lecture<'a> {
     }
 
     pub async fn pages(&self, client: &Client) -> anyhow::Result<Vec<LecturePage>> {
+        let lecture = Arc::new(self.clone());
         let response = client.get(&self.url()).send().await?;
         let current_url = response.url().to_string();
         let document = Html::parse_document(&response.text().await?);
@@ -180,7 +185,7 @@ impl<'a> Lecture<'a> {
                 };
                 let url = Url::parse(href);
                 LecturePage {
-                    lecture: self,
+                    lecture: Arc::clone(&lecture),
                     page: url.page.unwrap(),
                     title,
                 }
@@ -190,20 +195,20 @@ impl<'a> Lecture<'a> {
     }
 }
 
-impl<'a> ToString for Lecture<'a> {
+impl ToString for Lecture {
     fn to_string(&self) -> String {
         format!("{} - {}", self.group, self.name)
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct LecturePage<'a> {
-    pub lecture: &'a Lecture<'a>,
+pub struct LecturePage {
+    pub lecture: Arc<Lecture>,
     pub page: String,
     pub title: String,
 }
 
-impl<'a> LecturePage<'a> {
+impl LecturePage {
     pub fn url(&self) -> String {
         format!(
             "https://moocs.iniad.org/courses/{}/{}/{}/{}",
@@ -240,6 +245,7 @@ impl<'a> LecturePage<'a> {
         if !check_logged_in_google(client).await? {
             return Err(anyhow::anyhow!("Not logged in"));
         }
+        let lecture_page = Arc::new(self.clone());
         let iframes = self.iframes(client).await?;
         let slides = iframes
             .iter()
@@ -250,7 +256,7 @@ impl<'a> LecturePage<'a> {
             .into_iter()
             .flat_map(|result| result)
             .map(|content| Slide {
-                lecture_page: self,
+                lecture_page: Arc::clone(&lecture_page),
                 content,
             })
             .collect::<Vec<_>>();
@@ -263,7 +269,7 @@ impl<'a> LecturePage<'a> {
     }
 }
 
-impl<'a> ToString for LecturePage<'a> {
+impl ToString for LecturePage {
     fn to_string(&self) -> String {
         format!("{}", self.title)
     }
@@ -303,12 +309,12 @@ impl From<&[u8]> for Mime {
 }
 
 #[derive(Debug, Clone)]
-pub struct Slide<'a> {
-    pub lecture_page: &'a LecturePage<'a>,
+pub struct Slide {
+    pub lecture_page: Arc<LecturePage>,
     pub content: Vec<String>,
 }
 
-impl<'a> Slide<'a> {
+impl Slide {
     async fn src_to_base64(src: &str, client: &Client) -> anyhow::Result<String> {
         let response = client.get(src).send().await?;
         let bytes = response.bytes().await?;
@@ -410,7 +416,7 @@ impl<'a> Slide<'a> {
             })
             .collect::<anyhow::Result<Vec<_>>>()?;
         Ok(Slide {
-            lecture_page: self.lecture_page,
+            lecture_page: Arc::clone(&self.lecture_page),
             content,
         })
     }
@@ -422,7 +428,7 @@ impl<'a> Slide<'a> {
     }
 }
 
-impl IntoIterator for Slide<'_> {
+impl IntoIterator for Slide {
     type Item = String;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 

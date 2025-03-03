@@ -91,9 +91,9 @@ fn save_slides<P: AsRef<Path>>(slides: &Vec<Slide>, path: P) -> anyhow::Result<(
     Ok(())
 }
 
-async fn save_slides_from_pages<'a, P: AsRef<Path> + Sync>(
+async fn save_slides_from_pages<P: AsRef<Path> + Sync>(
     client: &Client,
-    pages: &Vec<LecturePage<'a>>,
+    pages: &Vec<LecturePage>,
     path: P,
 ) -> anyhow::Result<()> {
     let slides_aggregation = pages
