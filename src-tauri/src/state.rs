@@ -14,4 +14,4 @@ impl ClientState {
 }
 
 #[derive(Default)]
-pub struct CourseState(pub HashMap<String, Course>);
+pub struct CourseState(pub HashMap<(u32, String), Course>);

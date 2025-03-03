@@ -33,7 +33,9 @@ pub async fn get_courses(
         let mut course_state_guard = course_state.lock().map_err(|_| ())?;
         let course_state = &mut *course_state_guard;
         for course in &courses {
-            course_state.0.insert(course.id.clone(), course.clone());
+            course_state
+                .0
+                .insert((course.year, course.id.clone()), course.clone());
         }
     }
 
