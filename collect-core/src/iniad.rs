@@ -1,6 +1,7 @@
+use crate::utils::extract_element_attribute;
 use regex::Regex;
 use reqwest::{Client, Response};
-use scraper::Html;
+use scraper::{ElementRef, Html};
 
 #[derive(Debug, Clone)]
 pub struct Credentials {
@@ -25,24 +26,11 @@ async fn login(
     Ok(response)
 }
 
-fn extract_element_attribute(
-    document: &Html,
-    query: &str,
-    attribute: &str,
-) -> anyhow::Result<String> {
-    document
-        .select(&scraper::Selector::parse(query).unwrap())
-        .next()
-        .and_then(|element| Some(element.value().clone()))
-        .and_then(|element| element.attr(attribute).map(|value| value.to_string()))
-        .ok_or_else(|| anyhow::anyhow!("Element not found"))
-}
-
-fn extract_form_action(document: &Html, query: &str) -> anyhow::Result<String> {
+fn extract_form_action(document: &ElementRef, query: &str) -> anyhow::Result<String> {
     extract_element_attribute(document, query, "action")
 }
 
-fn extract_input_value(document: &Html, query: &str) -> anyhow::Result<String> {
+fn extract_input_value(document: &ElementRef, query: &str) -> anyhow::Result<String> {
     extract_element_attribute(document, query, "value")
 }
 
@@ -65,7 +53,7 @@ pub async fn login_moocs(client: &Client, credentials: &Credentials) -> anyhow::
     let response = client.get(login_url).send().await?;
     let body = response.text().await?;
     let document = Html::parse_document(&body);
-    let action = extract_form_action(&document, "form.form-signin");
+    let action = extract_form_action(&document.root_element(), "form.form-signin");
     if action.is_ok() {
         let action = action?;
         login(client, credentials, &action).await?;
@@ -78,7 +66,7 @@ pub async fn login_google(client: &Client, credentials: &Credentials) -> anyhow:
     let response = client.get(login_url).send().await?;
     let body = response.text().await?;
     let mut document = Html::parse_document(&body);
-    let action = extract_form_action(&document, "form.form-signin");
+    let action = extract_form_action(&document.root_element(), "form.form-signin");
     if action.is_ok() {
         let action = action?;
         let response = login(client, credentials, &action).await?;
@@ -86,9 +74,14 @@ pub async fn login_google(client: &Client, credentials: &Credentials) -> anyhow:
         document = Html::parse_document(&body);
     }
 
-    let action = extract_form_action(&document, "form[name='saml-post-binding']")?;
-    let saml_response = extract_input_value(&document, "input[name='SAMLResponse']")?;
-    let relay_state = extract_input_value(&document, "input[name='RelayState']")?;
+    let (action, saml_response, relay_state) = {
+        let root_element = document.root_element();
+        (
+            extract_form_action(&root_element, "form[name='saml-post-binding']")?,
+            extract_input_value(&root_element, "input[name='SAMLResponse']")?,
+            extract_input_value(&root_element, "input[name='RelayState']")?,
+        )
+    };
     let response = client
         .post(&action)
         .form(&[
@@ -100,10 +93,15 @@ pub async fn login_google(client: &Client, credentials: &Credentials) -> anyhow:
 
     let body = response.text().await?;
     let document = Html::parse_document(&body);
-    let action = extract_form_action(&document, "form[name='hiddenpost']")?;
-    let relay_state = extract_input_value(&document, "input[name='RelayState']")?;
-    let saml_response = extract_input_value(&document, "input[name='SAMLResponse']")?;
-    let trampoline = extract_input_value(&document, "input[name='trampoline']")?;
+    let (action, relay_state, saml_response, trampoline) = {
+        let root_element = document.root_element();
+        (
+            extract_form_action(&root_element, "form[name='hiddenpost']")?,
+            extract_input_value(&root_element, "input[name='RelayState']")?,
+            extract_input_value(&root_element, "input[name='SAMLResponse']")?,
+            extract_input_value(&root_element, "input[name='trampoline']")?,
+        )
+    };
     let response = client
         .post(&action)
         .form(&[

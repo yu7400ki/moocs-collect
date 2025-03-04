@@ -11,7 +11,7 @@ use std::{
 use clap::Parser;
 use collect::{
     iniad::{login_google, login_moocs, Credentials},
-    moocs::{Course, LecturePage, Slide},
+    moocs::{Course, LecturePage, Slide, SlideContent},
 };
 use dialoguer::{console::Style, Input, Password, Select};
 use indicatif::{ProgressBar, ProgressStyle};
@@ -73,22 +73,30 @@ fn slide_dir(slide: &Slide) -> String {
     )
 }
 
-fn save_slides<P: AsRef<Path>>(slides: &Vec<Slide>, path: P) -> anyhow::Result<()> {
-    for (i, slide) in slides.into_iter().enumerate() {
-        let dir = slide_dir(&slide);
-        let page = ignore_invalid_char(&slide.lecture_page.page);
-        let title = ignore_invalid_char(&slide.lecture_page.title);
-        let filename = match slides.len() {
-            1 => format!("{} - {}.pdf", page, title),
-            _ => format!("{} - {} ({}).pdf", page, title, i + 1),
-        };
-        let mut pdf = pdf::convert(&slide)?;
-        let path = path.as_ref().join(&dir);
-        create_dir_all(&path)?;
-        let path = path.join(&filename);
-        pdf.save(&path)?;
-    }
-    Ok(())
+fn save_slides<P: AsRef<Path>>(
+    slides: &Vec<Slide>,
+    contents: &Vec<SlideContent>,
+    path: P,
+) -> anyhow::Result<()> {
+    assert_eq!(slides.len(), contents.len());
+    let path = path.as_ref();
+    slides.par_iter().zip(contents).enumerate().try_for_each(
+        |(i, (slide, content))| -> Result<(), anyhow::Error> {
+            let dir = slide_dir(&slide);
+            let page = ignore_invalid_char(&slide.lecture_page.page_id);
+            let title = ignore_invalid_char(&slide.lecture_page.title);
+            let filename = match slides.len() {
+                1 => format!("{} - {}.pdf", page, title),
+                _ => format!("{} - {} ({}).pdf", page, title, i + 1),
+            };
+            let mut pdf = pdf::convert(content)?;
+            let path = path.join(&dir);
+            create_dir_all(&path)?;
+            let path = path.join(&filename);
+            pdf.save(&path)?;
+            Ok(())
+        },
+    )
 }
 
 async fn save_slides_from_pages<P: AsRef<Path> + Sync>(
@@ -96,34 +104,32 @@ async fn save_slides_from_pages<P: AsRef<Path> + Sync>(
     pages: &Vec<LecturePage>,
     path: P,
 ) -> anyhow::Result<()> {
-    let slides_aggregation = pages
-        .iter()
-        .map(|page| page.slides(client))
-        .collect::<Vec<_>>();
-    let slides_aggregation = futures::future::join_all(slides_aggregation)
+    let slides = futures::future::join_all(pages.iter().map(|page| page.slides(client)))
         .await
         .into_iter()
-        .collect::<anyhow::Result<Vec<Vec<Slide>>>>()?
-        .into_iter()
-        .collect::<Vec<_>>();
-    let slides_aggregation = slides_aggregation
+        .collect::<anyhow::Result<Vec<_>>>()?;
+    let slide_contents = slides
         .iter()
-        .map(|slides| {
-            let slides = slides
-                .iter()
-                .map(|slide| slide.embed_contents(client))
-                .collect::<Vec<_>>();
-            futures::future::join_all(slides)
-        })
-        .collect::<Vec<_>>();
-    let slides_aggregation = futures::future::join_all(slides_aggregation)
+        .map(|slides| futures::future::join_all(slides.iter().map(|slide| slide.content(client))));
+    let slide_contents = futures::future::join_all(slide_contents)
         .await
         .into_iter()
         .map(|slides| slides.into_iter().collect::<anyhow::Result<Vec<_>>>())
         .collect::<anyhow::Result<Vec<_>>>()?;
-    slides_aggregation
-        .par_iter()
-        .try_for_each(|slides| save_slides(slides, path.as_ref()))?;
+    let slide_contents = slide_contents
+        .iter()
+        .map(|slides| {
+            futures::future::join_all(slides.into_iter().map(|slide| slide.process(client)))
+        })
+        .collect::<Vec<_>>();
+    let slide_contents = futures::future::join_all(slide_contents)
+        .await
+        .into_iter()
+        .map(|slides| slides.into_iter().collect::<anyhow::Result<Vec<_>>>())
+        .collect::<anyhow::Result<Vec<_>>>()?;
+    slides.par_iter().zip(&slide_contents).try_for_each(
+        |(slides, contents)| -> Result<(), anyhow::Error> { save_slides(slides, contents, &path) },
+    )?;
     Ok(())
 }
 
@@ -265,15 +271,15 @@ async fn main() -> anyhow::Result<()> {
     let s = Spinner::new();
     s.set_message("保存中...");
     let slides = page.slides(&client).await?;
-    let slides = slides
-        .iter()
-        .map(|slide| slide.embed_contents(&client))
-        .collect::<Vec<_>>();
-    let slides = futures::future::join_all(slides)
+    let content = futures::future::join_all(slides.iter().map(|slide| slide.content(&client)))
         .await
         .into_iter()
         .collect::<anyhow::Result<Vec<_>>>()?;
-    save_slides(&slides, &path)?;
+    let content = futures::future::join_all(content.iter().map(|slide| slide.process(&client)))
+        .await
+        .into_iter()
+        .collect::<anyhow::Result<Vec<_>>>()?;
+    save_slides(&slides, &content, &path)?;
 
     Ok(())
 }

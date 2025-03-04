@@ -1,4 +1,4 @@
-use collect::moocs::Slide;
+use collect::moocs::SlideContent;
 use lopdf::dictionary;
 use lopdf::{Document, Object};
 use rayon::prelude::*;
@@ -8,7 +8,7 @@ use svg2pdf::{
     ConversionOptions, PageOptions,
 };
 
-pub fn convert(slide: &Slide) -> anyhow::Result<Document> {
+pub fn convert(slide: &SlideContent) -> anyhow::Result<Document> {
     let mut db = fontdb::Database::new();
     db.load_system_fonts();
     let options = Options::default();
@@ -18,7 +18,7 @@ pub fn convert(slide: &Slide) -> anyhow::Result<Document> {
         .map(|src| {
             let conversion_options = ConversionOptions::default();
             let page_options = PageOptions::default();
-            let tree = Tree::from_str(src, &options, &db).unwrap();
+            let tree = Tree::from_str(&src.src, &options, &db).unwrap();
             let pdf = to_pdf(&tree, conversion_options, page_options, &db);
             Document::load_mem(&pdf).map_err(anyhow::Error::from)
         })
