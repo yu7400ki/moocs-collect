@@ -1,9 +1,10 @@
 import { JotaiProvider } from "./jotai";
+import { TanstackRouterProvider } from "./tanstack-router";
 
-type Props = {
-  children?: React.ReactNode;
-};
-
-export function Providers({ children }: Props) {
-  return <JotaiProvider>{children}</JotaiProvider>;
+export function Providers() {
+  return (
+    <JotaiProvider>
+      <TanstackRouterProvider />
+    </JotaiProvider>
+  );
 }

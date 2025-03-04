@@ -1,10 +1,10 @@
 import { login } from "@/command/login";
 import { store } from "@/components/providers/jotai";
+import { router } from "@/components/providers/tanstack-router";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
-import { useNavigate } from "@tanstack/react-router";
 import { useActionState } from "react";
 import { css } from "styled-system/css";
 import { z } from "zod";
@@ -19,11 +19,7 @@ const schema = z.object({
     .nonempty("パスワードを入力してください"),
 });
 
-async function loginAction(
-  navigation: ReturnType<typeof useNavigate>,
-  _: unknown,
-  formData: FormData,
-) {
+async function loginAction(_: unknown, formData: FormData) {
   const submission = parseWithZod(formData, { schema });
 
   if (submission.status !== "success") {
@@ -42,15 +38,14 @@ async function loginAction(
   }
 
   store.set(authenticatedAtom, true);
-  await navigation({
+  await router.navigate({
     to: "/",
   });
 }
 
 export function LoginForm() {
-  const navigation = useNavigate();
   const [lastResult, action, isPending] = useActionState(
-    loginAction.bind(null, navigation),
+    loginAction,
     undefined,
   );
   const [form, fields] = useForm({
