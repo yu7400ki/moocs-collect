@@ -83,7 +83,7 @@ fn save_slides<P: AsRef<Path>>(
     slides.par_iter().zip(contents).enumerate().try_for_each(
         |(i, (slide, content))| -> Result<(), anyhow::Error> {
             let dir = slide_dir(&slide);
-            let page = ignore_invalid_char(&slide.lecture_page.page_id);
+            let page = ignore_invalid_char(&slide.lecture_page.id);
             let title = ignore_invalid_char(&slide.lecture_page.title);
             let filename = match slides.len() {
                 1 => format!("{} - {}.pdf", page, title),

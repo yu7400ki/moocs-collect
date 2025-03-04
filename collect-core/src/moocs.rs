@@ -98,7 +98,6 @@ impl Course {
                     .to_string();
                 let href = extract_element_attribute(&course_card, "a", "href")?;
                 let url = Url::try_from(href.as_str())?;
-                println!("{:?}", url);
                 if !url.is_course() {
                     return Err(anyhow::anyhow!("Invalid URL"));
                 }
@@ -107,10 +106,7 @@ impl Course {
             // filter out errors
             .filter_map(|result| match result {
                 Ok(course) => Some(course),
-                Err(a) => {
-                    eprintln!("{}", a);
-                    None
-                }
+                Err(_) => None,
             })
             .collect::<Vec<_>>();
         courses
@@ -225,7 +221,7 @@ impl ToString for Lecture {
 #[derive(Debug, Clone)]
 pub struct LecturePage {
     pub lecture: Arc<Lecture>,
-    pub page_id: String,
+    pub id: String,
     pub title: String,
 }
 
@@ -268,7 +264,7 @@ impl LecturePage {
         pages
     }
 
-    async fn list(client: &Client, lecture: Arc<Lecture>) -> anyhow::Result<Vec<Self>> {
+    pub async fn list(client: &Client, lecture: Arc<Lecture>) -> anyhow::Result<Vec<Self>> {
         let (current_url, html) =
             Self::fetch_page(client, lecture.course.year, &lecture.course.id, &lecture.id).await?;
         let current_url = Url::try_from(current_url.as_str())?;
@@ -281,7 +277,7 @@ impl LecturePage {
                 }
                 Ok(LecturePage {
                     lecture: Arc::clone(&lecture),
-                    page_id: url.page_id.unwrap(),
+                    id: url.page_id.unwrap(),
                     title,
                 })
             })
@@ -360,7 +356,7 @@ impl Slide {
             lecture_page.lecture.course.year,
             &lecture_page.lecture.course.id,
             &lecture_page.lecture.id,
-            &lecture_page.page_id,
+            &lecture_page.id,
         )
         .await?;
         let slide_urls = Self::scrape_page(&html);
