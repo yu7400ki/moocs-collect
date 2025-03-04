@@ -169,6 +169,7 @@ name = "app"
 version = "0.2.1"
 dependencies = [
  "collect-core",
+ "futures",
  "log",
  "reqwest",
  "serde",

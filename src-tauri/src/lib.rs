@@ -22,12 +22,16 @@ pub fn run() {
             }
             app.manage(state::ClientState::new()?);
             app.manage(Mutex::new(state::CourseState::default()));
+            app.manage(Mutex::new(state::LectureState::default()));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             greet,
             command::login::login,
-            command::get_courses::get_courses
+            command::get_courses::get_courses,
+            command::get_lectures::get_lectures,
+            command::get_pages::get_pages,
+            command::get_slides::get_slides,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

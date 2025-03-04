@@ -1,4 +1,4 @@
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use crate::state::{ClientState, CourseState};
 use collect::moocs;
@@ -35,7 +35,7 @@ pub async fn get_courses(
         for course in &courses {
             course_state
                 .0
-                .insert((course.year, course.id.clone()), course.clone());
+                .insert((course.year, course.id.clone()), Arc::new(course.clone()));
         }
     }
 

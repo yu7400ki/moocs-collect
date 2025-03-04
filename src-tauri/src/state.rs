@@ -1,5 +1,6 @@
-use collect::moocs::Course;
+use collect::moocs::{Course, Lecture, LecturePage};
 use std::collections::HashMap;
+use std::sync::Arc;
 
 pub struct ClientState(pub reqwest::Client);
 
@@ -14,4 +15,10 @@ impl ClientState {
 }
 
 #[derive(Default)]
-pub struct CourseState(pub HashMap<(u32, String), Course>);
+pub struct CourseState(pub HashMap<(u32, String), Arc<Course>>);
+
+#[derive(Default)]
+pub struct LectureState(pub HashMap<(u32, String, String), Arc<Lecture>>);
+
+#[derive(Default)]
+pub struct PageState(pub HashMap<(u32, String, String, String), Arc<LecturePage>>);
