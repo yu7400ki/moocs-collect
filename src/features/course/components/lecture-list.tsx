@@ -1,5 +1,5 @@
 import { useAtom, useAtomValue } from "jotai";
-import { useMemo } from "react";
+import { Fragment, useMemo } from "react";
 import { css } from "styled-system/css";
 import { lectureSelectIdAtom, lecturesAtom } from "../atoms/lecture";
 import type { Lecture } from "../schemas/lecture";
@@ -33,9 +33,8 @@ export function LectureList() {
   return (
     <ListItem.Root selected={selectedLectureId} onSelect={setSelectedLectureId}>
       {Object.entries(groupedLectures || {}).map(([group, lectures]) => (
-        <>
+        <Fragment key={`${uniqueKey(lectures[0])}-${group}`}>
           <span
-            key={`${uniqueKey(lectures[0])}-${group}`}
             className={css({
               display: "block",
               fontSize: "sm",
@@ -53,7 +52,7 @@ export function LectureList() {
               {lecture.name}
             </ListItem.Item>
           ))}
-        </>
+        </Fragment>
       ))}
     </ListItem.Root>
   );
