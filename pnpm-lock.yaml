@@ -28,9 +28,15 @@ importers:
       '@tauri-apps/api':
         specifier: ^2.3.0
         version: 2.3.0
+      es-toolkit:
+        specifier: ^1.32.0
+        version: 1.32.0
       jotai:
         specifier: ^2.12.1
         version: 2.12.1(@types/react@19.0.10)(react@19.0.0)
+      jotai-derive:
+        specifier: ^0.1.2
+        version: 0.1.2(jotai@2.12.1(@types/react@19.0.10)(react@19.0.0))
       react:
         specifier: ^19.0.0
         version: 19.0.0
@@ -1506,6 +1512,9 @@ packages:
     resolution: {integrity: sha512-V0hjH4dGPh9Ao5p0MoRY6BVqtwCjhz6vI5LT8AJ55H+4g9/4vbHx1I54fS0XuclLhDHArPQCiMjDxjaL8fPxhw==}
     engines: {node: '>=0.12'}
 
+  es-toolkit@1.32.0:
+    resolution: {integrity: sha512-ZfSfHP1l6ubgW/B/FRtqb9bYdMvI6jizbOSfbwwJNcOQ1QE6TFsC3jpQkZ900uUPSR3t3SU5Ds7UWKnYz+uP8Q==}
+
   esbuild@0.20.2:
     resolution: {integrity: sha512-WdOOppmUNU+IbZ0PaDiTst80zjnrOkyJNHoKupIcVyU8Lvla3Ugx94VzkQ32Ijqd7UhHJy75gNWDMUekcrSJ6g==}
     engines: {node: '>=12'}
@@ -1634,6 +1643,11 @@ packages:
 
   javascript-stringify@2.1.0:
     resolution: {integrity: sha512-JVAfqNPTvNq3sB/VHQJAFxN/sPgKnsKrCwyRt15zwNCdrMMJDdcEOdubuy+DuJYYdm0ox1J4uzEuYKkN+9yhVg==}
+
+  jotai-derive@0.1.2:
+    resolution: {integrity: sha512-kdXH7pyigSiDFWPgyy0zygQvKhcboCuCRnBbQP5zEv5j9swcQN+9PLvQ4YEkzRq31CQy15xFYr9lSICwgZnqhw==}
+    peerDependencies:
+      jotai: '>=2.0.0'
 
   jotai@2.12.1:
     resolution: {integrity: sha512-VUW0nMPYIru5g89tdxwr9ftiVdc/nGV9jvHISN8Ucx+m1vI9dBeHemfqYzEuw5XSkmYjD/MEyApN9k6yrATsZQ==}
@@ -4219,6 +4233,8 @@ snapshots:
 
   entities@4.5.0: {}
 
+  es-toolkit@1.32.0: {}
+
   esbuild@0.20.2:
     optionalDependencies:
       '@esbuild/aix-ppc64': 0.20.2
@@ -4367,6 +4383,10 @@ snapshots:
   isexe@3.1.1: {}
 
   javascript-stringify@2.1.0: {}
+
+  jotai-derive@0.1.2(jotai@2.12.1(@types/react@19.0.10)(react@19.0.0)):
+    dependencies:
+      jotai: 2.12.1(@types/react@19.0.10)(react@19.0.0)
 
   jotai@2.12.1(@types/react@19.0.10)(react@19.0.0):
     optionalDependencies:
