@@ -23,6 +23,7 @@ pub fn run() {
             app.manage(state::ClientState::new()?);
             app.manage(Mutex::new(state::CourseState::default()));
             app.manage(Mutex::new(state::LectureState::default()));
+            app.manage(Mutex::new(state::PageState::default()));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
