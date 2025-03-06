@@ -39,6 +39,7 @@
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
     "npm-run-all2": "^7.0.2",
+    "react-scan": "^0.2.9",
     "typescript": "^5.8.2",
     "vite": "^6.2.0",
     "vite-tsconfig-paths": "^5.1.4"
