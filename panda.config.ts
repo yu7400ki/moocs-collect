@@ -2,6 +2,7 @@ import { defineConfig } from "@pandacss/dev";
 import { createPreset } from "@park-ui/panda-preset";
 import cyan from "@park-ui/panda-preset/colors/cyan";
 import slate from "@park-ui/panda-preset/colors/slate";
+import { slotRecipes } from "./src/recipes";
 
 export default defineConfig({
   preflight: true,
@@ -23,6 +24,7 @@ export default defineConfig({
           },
         },
       },
+      slotRecipes,
     },
   },
 
