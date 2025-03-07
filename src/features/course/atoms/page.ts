@@ -36,9 +36,7 @@ export const pageSelectAtom = atom(
 );
 
 export const pageSelectIdAtom = atom(
-  (get) => {
-    return soon(get(pageSelectAtom), (page) => page?.id ?? null);
-  },
+  (get) => get(pageSelectAtom)?.id ?? null,
   async (get, set, id: Page["id"] | null) => {
     const map = await get(pageMapAtom);
     const page = id ? map?.get(id) : null;

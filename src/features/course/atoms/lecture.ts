@@ -38,9 +38,7 @@ export const lectureSelectAtom = atom(
 );
 
 export const lectureSelectIdAtom = atom(
-  (get) => {
-    return soon(get(lectureSelectAtom), (lecture) => lecture?.id ?? null);
-  },
+  (get) => get(lectureSelectAtom)?.id ?? null,
   async (get, set, id: Lecture["id"] | null) => {
     const map = await get(lectureMapAtom);
     const lecture = id ? map?.get(id) : null;
