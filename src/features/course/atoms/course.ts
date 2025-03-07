@@ -1,11 +1,14 @@
+import { unwrapPromise } from "@/utils/atom";
 import { atom } from "jotai";
 import { derive } from "jotai-derive";
 import type { Course } from "../schemas/course";
 import { getCourses } from "../services/courses";
 
-export const coursesAtom = atom(async () => {
+const internalCoursesAtom = atom(async () => {
   return await getCourses();
 });
+
+export const coursesAtom = unwrapPromise(internalCoursesAtom);
 
 export const courseMapAtom = derive([coursesAtom], (courses) => {
   return new Map(courses.map((course) => [course.id, course]));

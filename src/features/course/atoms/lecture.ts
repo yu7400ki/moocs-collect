@@ -1,14 +1,17 @@
+import { unwrapPromise } from "@/utils/atom";
 import { atom } from "jotai";
-import { derive, soon } from "jotai-derive";
+import { derive } from "jotai-derive";
 import type { Lecture } from "../schemas/lecture";
 import { uniqueKey } from "../services/courses";
 import { getLectures } from "../services/lectures";
 import { courseSelectAtom } from "./course";
 
-export const lecturesAtom = atom((get) => {
+export const internalLecturesAtom = atom((get) => {
   const course = get(courseSelectAtom);
   return course ? getLectures(course) : null;
 });
+
+export const lecturesAtom = unwrapPromise(internalLecturesAtom);
 
 export const lectureMapAtom = derive([lecturesAtom], (lectures) => {
   return lectures
