@@ -11,7 +11,7 @@ export function Login() {
         height: "100dvh",
       })}
     >
-      <Container w="full" maxW="sm">
+      <Container w="full" maxW="md">
         <LoginForm />
       </Container>
     </div>
