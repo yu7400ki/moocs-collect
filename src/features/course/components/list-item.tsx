@@ -1,49 +1,31 @@
-import { RadioGroup } from "@ark-ui/react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { memo } from "react";
 import { css } from "styled-system/css";
 
-export type RootProps<T extends string> = {
+export type ListItemProps<T extends string> = {
   children?: React.ReactNode;
-  selected?: T | null;
-  onSelect?: (value: T) => void;
-} & Omit<
-  React.ComponentProps<typeof RadioGroup.Root>,
-  "value" | "onValueChange" | "onSelect"
->;
+  value: T;
+  selected?: boolean;
+  onSelect?: (value: NoInfer<T>) => void;
+  checked?: boolean;
+  onToggleCheck?: (value: NoInfer<T>) => void;
+};
 
-export function Root<T extends string>({
+function ListItemComponent<T extends string>({
   children,
+  value,
   selected,
   onSelect,
-  ...props
-}: RootProps<T>) {
+  checked,
+  onToggleCheck,
+}: ListItemProps<T>) {
   return (
-    <RadioGroup.Root
-      value={selected}
-      onValueChange={(details) => onSelect?.(details.value as T)}
-      {...props}
-    >
-      {children}
-    </RadioGroup.Root>
-  );
-}
-
-export type ItemProps<T extends string> = {
-  value: T;
-  children: React.ReactNode;
-} & React.ComponentProps<typeof RadioGroup.Item>;
-
-export function Item<T extends string>({
-  value,
-  children,
-  ...props
-}: ItemProps<T>) {
-  return (
-    <RadioGroup.Item
-      value={value}
-      {...props}
+    <button
+      type="button"
       className={css({
         appearance: "none",
         h: 8,
+        w: "full",
         px: 3,
         rounded: "l2",
         color: "fg.default",
@@ -52,6 +34,7 @@ export function Item<T extends string>({
         alignItems: "center",
         outline: "none",
         position: "relative",
+        textAlign: "left",
         transitionDuration: "normal",
         transitionProperty: "background, border-color, color, box-shadow",
         transitionTimingFunction: "default",
@@ -60,12 +43,21 @@ export function Item<T extends string>({
         whiteSpace: "nowrap",
         _checked: {
           bg: "gray.a3",
-          cursor: "default",
         },
       })}
+      data-state={selected ? "checked" : undefined}
+      onClick={() => onSelect?.(value)}
+      onDoubleClick={() => onToggleCheck?.(value)}
     >
-      <RadioGroup.ItemControl />
-      <RadioGroup.ItemText
+      <Checkbox
+        onCheckedChange={() => onToggleCheck?.(value)}
+        onDoubleClick={(e) => e.stopPropagation()}
+        checked={checked}
+        className={css({
+          mr: 1.5,
+        })}
+      />
+      <span
         className={css({
           flex: 1,
           overflow: "hidden",
@@ -73,8 +65,9 @@ export function Item<T extends string>({
         })}
       >
         {children}
-      </RadioGroup.ItemText>
-      <RadioGroup.ItemHiddenInput />
-    </RadioGroup.Item>
+      </span>
+    </button>
   );
 }
+
+export const ListItem = memo(ListItemComponent) as typeof ListItemComponent;

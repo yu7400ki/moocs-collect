@@ -1,10 +1,11 @@
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { Fragment, useMemo } from "react";
 import { css } from "styled-system/css";
+import { lectureChecksAtom, toggleLectureCheckAtom } from "../atoms/check";
 import { lectureSelectIdAtom, lecturesAtom } from "../atoms/lecture";
 import type { Lecture } from "../schemas/lecture";
 import { uniqueKey } from "../services/lectures";
-import * as ListItem from "./list-item";
+import { ListItem } from "./list-item";
 
 function aggregateByGroup(lectures: Lecture[]) {
   return lectures.reduce(
@@ -24,6 +25,8 @@ export function LectureList() {
   const lectures = useAtomValue(lecturesAtom);
   const [selectedLectureId, setSelectedLectureId] =
     useAtom(lectureSelectIdAtom);
+  const lectureChecks = useAtomValue(lectureChecksAtom);
+  const toggleChecks = useSetAtom(toggleLectureCheckAtom);
 
   const groupedLectures = useMemo(
     () => lectures && aggregateByGroup(lectures),
@@ -31,7 +34,7 @@ export function LectureList() {
   );
 
   return (
-    <ListItem.Root selected={selectedLectureId} onSelect={setSelectedLectureId}>
+    <div>
       {Object.entries(groupedLectures || {}).map(([group, lectures]) => (
         <Fragment key={`${uniqueKey(lectures[0])}-${group}`}>
           <span
@@ -48,12 +51,19 @@ export function LectureList() {
             {group}
           </span>
           {lectures.map((lecture) => (
-            <ListItem.Item key={uniqueKey(lecture)} value={lecture.id}>
+            <ListItem
+              key={uniqueKey(lecture)}
+              value={lecture.id}
+              selected={lecture.id === selectedLectureId}
+              onSelect={setSelectedLectureId}
+              checked={lectureChecks.has(lecture.id)}
+              onToggleCheck={toggleChecks}
+            >
               {lecture.name}
-            </ListItem.Item>
+            </ListItem>
           ))}
         </Fragment>
       ))}
-    </ListItem.Root>
+    </div>
   );
 }
