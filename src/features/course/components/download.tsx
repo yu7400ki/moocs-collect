@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { enqueue } from "@/features/download/atoms/queue";
 import type { MaybePromise } from "@/utils/types";
 import { useAtomValue } from "jotai";
+import { DownloadIcon } from "lucide-react";
 import { useCallback } from "react";
 import { type Node, courseTreeAtom } from "../atoms/check";
 import type { Page } from "../schemas/page";
@@ -79,8 +80,9 @@ export function Download({
   );
 
   return (
-    <Button onClick={handleClick} {...props}>
+    <Button onClick={handleClick} size="sm" variant="subtle" {...props}>
       ダウンロード
+      <DownloadIcon />
     </Button>
   );
 }
