@@ -37,12 +37,21 @@ importers:
       jotai-derive:
         specifier: ^0.1.2
         version: 0.1.2(jotai@2.12.1(@types/react@19.0.10)(react@19.0.0))
+      jotai-valtio:
+        specifier: ^0.6.0
+        version: 0.6.0(jotai@2.12.1(@types/react@19.0.10)(react@19.0.0))(valtio@2.1.3(@types/react@19.0.10)(react@19.0.0))
+      p-queue:
+        specifier: ^8.1.0
+        version: 8.1.0
       react:
         specifier: ^19.0.0
         version: 19.0.0
       react-dom:
         specifier: ^19.0.0
         version: 19.0.0(react@19.0.0)
+      valtio:
+        specifier: ^2.1.3
+        version: 2.1.3(@types/react@19.0.10)(react@19.0.0)
       zod:
         specifier: ^3.24.2
         version: 3.24.2
@@ -1747,6 +1756,9 @@ packages:
   estree-walker@3.0.3:
     resolution: {integrity: sha512-7RUKfXgSMMkzt6ZuXmqapOurLGPPfgj6l9uRZ7lRGolvk0y2yocc35LdcxKC5PQZdn2DMqioAQ2NoWcrTKmm6g==}
 
+  eventemitter3@5.0.1:
+    resolution: {integrity: sha512-GWkBvjiSZK87ELrYOSESUYeVIc9mvLLf/nXalMOS5dYrgZq9o5OVkbZAVM06CVxYsCwH9BDZFPlQTlPA1j4ahA==}
+
   fast-check@3.23.2:
     resolution: {integrity: sha512-h5+1OzzfCC3Ef7VbtKdcv7zsstUQwUDlYpUTvjeUsJAssPgLn7QzbboPtL5ro04Mq0rPOsMzl7q5hIbRs2wD1A==}
     engines: {node: '>=8.0.0'}
@@ -1864,6 +1876,12 @@ packages:
     resolution: {integrity: sha512-kdXH7pyigSiDFWPgyy0zygQvKhcboCuCRnBbQP5zEv5j9swcQN+9PLvQ4YEkzRq31CQy15xFYr9lSICwgZnqhw==}
     peerDependencies:
       jotai: '>=2.0.0'
+
+  jotai-valtio@0.6.0:
+    resolution: {integrity: sha512-ohn1On9O8dUZRfl04BFdJk1JcFjYmjLV8UZWNNypxpyzrx0nKKqbnu7mvAZjE8430obnqYQX1KRb+4CluFVPeA==}
+    peerDependencies:
+      jotai: '>=2.0.0'
+      valtio: '>=2.0.0'
 
   jotai@2.12.1:
     resolution: {integrity: sha512-VUW0nMPYIru5g89tdxwr9ftiVdc/nGV9jvHISN8Ucx+m1vI9dBeHemfqYzEuw5XSkmYjD/MEyApN9k6yrATsZQ==}
@@ -2054,6 +2072,14 @@ packages:
 
   outdent@0.8.0:
     resolution: {integrity: sha512-KiOAIsdpUTcAXuykya5fnVVT+/5uS0Q1mrkRHcF89tpieSmY33O/tmc54CqwA+bfhbtEfZUNLHaPUiB9X3jt1A==}
+
+  p-queue@8.1.0:
+    resolution: {integrity: sha512-mxLDbbGIBEXTJL0zEx8JIylaj3xQ7Z/7eEVjcF9fJX4DBiH9oqe+oahYnlKKxm0Ci9TlWTyhSHgygxMxjIB2jw==}
+    engines: {node: '>=18'}
+
+  p-timeout@6.1.4:
+    resolution: {integrity: sha512-MyIV3ZA/PmyBN/ud8vV9XzwTrNtR4jFrObymZYnZqMmW0zA8Z17vnT0rBgFE/TlohB+YCHqXMgZzb3Csp49vqg==}
+    engines: {node: '>=14.16'}
 
   package-manager-detector@0.1.0:
     resolution: {integrity: sha512-qRwvZgEE7geMY6xPChI3T0qrM0PL4s/AKiLnNVjhg3GdN2/fUUSrpGA5Z8mejMXauT1BS6RJIgWvSGAdqg8NnQ==}
@@ -2423,6 +2449,18 @@ packages:
 
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
+
+  valtio@2.1.3:
+    resolution: {integrity: sha512-q+dVczY5zf7kO39JPVq2qR0VXMeEpF1t+P1njHU7hAhwgtyVa/p38YmgyHZq2IQYwnkNrkvh412k4sfDmcIJ2g==}
+    engines: {node: '>=12.20.0'}
+    peerDependencies:
+      '@types/react': '>=18.0.0'
+      react: '>=18.0.0'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      react:
+        optional: true
 
   vite-tsconfig-paths@5.1.4:
     resolution: {integrity: sha512-cYj0LRuLV2c2sMqhqhGpaO3LretdtMn/BVX4cPLanIZuwwrkVl+lK84E/miEXkCHWXuq65rhNN4rXsBcOB3S4w==}
@@ -4716,6 +4754,8 @@ snapshots:
     dependencies:
       '@types/estree': 1.0.6
 
+  eventemitter3@5.0.1: {}
+
   fast-check@3.23.2:
     dependencies:
       pure-rand: 6.1.0
@@ -4811,6 +4851,11 @@ snapshots:
   jotai-derive@0.1.2(jotai@2.12.1(@types/react@19.0.10)(react@19.0.0)):
     dependencies:
       jotai: 2.12.1(@types/react@19.0.10)(react@19.0.0)
+
+  jotai-valtio@0.6.0(jotai@2.12.1(@types/react@19.0.10)(react@19.0.0))(valtio@2.1.3(@types/react@19.0.10)(react@19.0.0)):
+    dependencies:
+      jotai: 2.12.1(@types/react@19.0.10)(react@19.0.0)
+      valtio: 2.1.3(@types/react@19.0.10)(react@19.0.0)
 
   jotai@2.12.1(@types/react@19.0.10)(react@19.0.0):
     optionalDependencies:
@@ -4954,6 +4999,13 @@ snapshots:
   object-path@0.11.8: {}
 
   outdent@0.8.0: {}
+
+  p-queue@8.1.0:
+    dependencies:
+      eventemitter3: 5.0.1
+      p-timeout: 6.1.4
+
+  p-timeout@6.1.4: {}
 
   package-manager-detector@0.1.0: {}
 
@@ -5291,6 +5343,13 @@ snapshots:
       react: 19.0.0
 
   util-deprecate@1.0.2: {}
+
+  valtio@2.1.3(@types/react@19.0.10)(react@19.0.0):
+    dependencies:
+      proxy-compare: 3.0.1
+    optionalDependencies:
+      '@types/react': 19.0.10
+      react: 19.0.0
 
   vite-tsconfig-paths@5.1.4(typescript@5.8.2)(vite@6.2.0(@types/node@22.13.8)(lightningcss@1.25.1)(tsx@4.19.3)):
     dependencies:
