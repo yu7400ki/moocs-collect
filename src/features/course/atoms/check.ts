@@ -1,21 +1,26 @@
+import type { MaybePromise } from "@/utils/types";
 import { type Atom, type WritableAtom, atom } from "jotai";
 import { soon } from "jotai-derive";
 import { courseSelectIdAtom } from "./course";
 import { lectureSelectIdAtom, lecturesAtom } from "./lecture";
 import { pagesAtom } from "./page";
 
-type Node = {
+export type Node = {
   id: string;
   checked: boolean;
   children?: Node[];
 };
 
-type MaybePromise<V> = V | Promise<V>;
-
 function createTreeAtom(initialNode: Node) {
   const internalAtom = atom(initialNode);
   return atom(
-    (get) => get(internalAtom),
+    (get) => {
+      const tree = get(internalAtom);
+      return {
+        ...tree,
+        children: tree.children ?? [],
+      };
+    },
     (_, set, children: Node[]) => {
       set(internalAtom, (prev) => {
         const newTree = structuredClone(prev);
@@ -70,17 +75,18 @@ function createChildTreeAtom<R>(
             checked: false,
             children: [],
           } satisfies Node);
-        if (!node?.children) {
+        const copiedNode = structuredClone(node);
+        if (!copiedNode?.children) {
           return soon(get(childrenDataAtom), (data) => {
             const children = (data ?? []).reduce((nodes, child) => {
               nodes.push({ id: child.id, checked: true });
               return nodes;
             }, [] as Node[]);
-            node.children = children;
-            return node;
+            copiedNode.children = children;
+            return copiedNode;
           });
         }
-        return node;
+        return copiedNode;
       });
     },
     async (get, set, children: Node[]) => {
@@ -102,7 +108,7 @@ function createChildTreeAtom<R>(
 
 export const courseTreeAtom = createTreeAtom({
   id: "root",
-  checked: false,
+  checked: true,
   children: [],
 });
 
