@@ -14,6 +14,7 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as LoginImport } from './routes/login'
 import { Route as AuthenticatedImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedDownloadImport } from './routes/_authenticated/download'
 
 // Create/Update Routes
 
@@ -31,6 +32,12 @@ const AuthenticatedRoute = AuthenticatedImport.update({
 const AuthenticatedIndexRoute = AuthenticatedIndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
+const AuthenticatedDownloadRoute = AuthenticatedDownloadImport.update({
+  id: '/download',
+  path: '/download',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 
@@ -52,6 +59,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginImport
       parentRoute: typeof rootRoute
     }
+    '/_authenticated/download': {
+      id: '/_authenticated/download'
+      path: '/download'
+      fullPath: '/download'
+      preLoaderRoute: typeof AuthenticatedDownloadImport
+      parentRoute: typeof AuthenticatedImport
+    }
     '/_authenticated/': {
       id: '/_authenticated/'
       path: '/'
@@ -65,10 +79,12 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedDownloadRoute: typeof AuthenticatedDownloadRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedDownloadRoute: AuthenticatedDownloadRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 
@@ -79,11 +95,13 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 export interface FileRoutesByFullPath {
   '': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
+  '/download': typeof AuthenticatedDownloadRoute
   '/': typeof AuthenticatedIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/download': typeof AuthenticatedDownloadRoute
   '/': typeof AuthenticatedIndexRoute
 }
 
@@ -91,15 +109,21 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
+  '/_authenticated/download': typeof AuthenticatedDownloadRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '' | '/login' | '/'
+  fullPaths: '' | '/login' | '/download' | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/'
-  id: '__root__' | '/_authenticated' | '/login' | '/_authenticated/'
+  to: '/login' | '/download' | '/'
+  id:
+    | '__root__'
+    | '/_authenticated'
+    | '/login'
+    | '/_authenticated/download'
+    | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
 
@@ -130,11 +154,16 @@ export const routeTree = rootRoute
     "/_authenticated": {
       "filePath": "_authenticated.tsx",
       "children": [
+        "/_authenticated/download",
         "/_authenticated/"
       ]
     },
     "/login": {
       "filePath": "login.tsx"
+    },
+    "/_authenticated/download": {
+      "filePath": "_authenticated/download.tsx",
+      "parent": "/_authenticated"
     },
     "/_authenticated/": {
       "filePath": "_authenticated/index.tsx",
