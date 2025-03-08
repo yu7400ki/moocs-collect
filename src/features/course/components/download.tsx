@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { enqueue } from "@/features/download/atoms/queue";
 import type { MaybePromise } from "@/utils/types";
-import { useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 import { DownloadIcon } from "lucide-react";
 import { useCallback } from "react";
+import { useTransition } from "react";
 import { type Node, courseTreeAtom } from "../atoms/check";
 import type { Page } from "../schemas/page";
 import { getCourses } from "../services/courses";
@@ -69,18 +70,30 @@ export function Download({
   onClick,
   ...props
 }: React.ComponentProps<typeof Button>) {
-  const tree = useAtomValue(courseTreeAtom);
+  const [tree, setTree] = useAtom(courseTreeAtom);
+  const [isPending, startTransition] = useTransition();
 
   const handleClick = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
-      retrievePages(tree);
+    async (e: React.MouseEvent<HTMLButtonElement>) => {
       onClick?.(e);
+      await retrievePages(tree);
+      setTree([]);
     },
-    [tree, onClick],
+    [tree, setTree, onClick],
   );
 
   return (
-    <Button onClick={handleClick} size="sm" variant="subtle" {...props}>
+    <Button
+      onClick={(e) => {
+        startTransition(async () => {
+          await handleClick(e);
+        });
+      }}
+      size="sm"
+      variant="subtle"
+      loading={isPending}
+      {...props}
+    >
       ダウンロード
       <DownloadIcon />
     </Button>
