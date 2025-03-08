@@ -22,9 +22,6 @@ export function ListItem({ page, status }: Props) {
         columnGap: 2,
         borderBottom: "1px solid",
         borderColor: "border.subtle",
-        _last: {
-          borderBottom: "none",
-        },
       })}
     >
       <p
