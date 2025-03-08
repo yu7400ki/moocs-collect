@@ -24,6 +24,7 @@
     "jotai": "^2.12.1",
     "jotai-derive": "^0.1.2",
     "jotai-valtio": "^0.6.0",
+    "lucide-react": "^0.479.0",
     "p-queue": "^8.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
