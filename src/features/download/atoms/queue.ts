@@ -7,9 +7,9 @@ import { proxy } from "valtio/vanilla";
 const queue = new PQueue({ concurrency: 10 });
 
 const queueState = proxy({
-  pending: proxySet(),
-  running: proxySet(),
-  completed: proxySet(),
+  pending: proxySet<Page>(),
+  running: proxySet<Page>(),
+  completed: proxySet<Page>(),
 });
 
 export async function enqueue(page: Page) {
