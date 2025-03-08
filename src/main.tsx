@@ -1,7 +1,8 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
 import { Providers } from "./components/providers";
+import "./index.css";
+import "unfonts.css";
 
 const rootElement = document.getElementById("root");
 if (rootElement && !rootElement.innerHTML) {

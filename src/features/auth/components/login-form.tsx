@@ -74,6 +74,7 @@ export function LoginForm() {
           name={fields.username.name}
           className={css({
             fontFamily: "latin",
+            fontVariantNumeric: "initial",
           })}
         />
         {fields.username.errors?.map((error) => (
@@ -89,6 +90,7 @@ export function LoginForm() {
           name={fields.password.name}
           className={css({
             fontFamily: "latin",
+            fontVariantNumeric: "initial",
           })}
         />
         {fields.password.errors?.map((error) => (

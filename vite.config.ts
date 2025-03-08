@@ -1,5 +1,6 @@
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
+import Unfonts from "unplugin-fonts/vite";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
@@ -11,6 +12,11 @@ export default defineConfig({
     TanStackRouterVite({ autoCodeSplitting: false }),
     react(),
     tsconfigPaths(),
+    Unfonts({
+      fontsource: {
+        families: ["IBM Plex Sans JP", "Inter"],
+      },
+    }),
   ],
 
   clearScreen: false,

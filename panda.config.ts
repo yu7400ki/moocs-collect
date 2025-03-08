@@ -17,7 +17,10 @@ export default defineConfig({
     extend: {
       tokens: {
         fonts: {
-          japanese: { value: "'Hiragino Sans', 'BIZ UDPGothic', 'sans-serif'" },
+          japanese: {
+            value:
+              "Inter, 'IBM Plex Sans JP', 'Hiragino Sans', 'BIZ UDPGothic', 'sans-serif'",
+          },
           latin: {
             value:
               "Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif",
@@ -31,6 +34,7 @@ export default defineConfig({
   globalCss: {
     body: {
       fontFamily: "japanese",
+      fontVariantNumeric: "tabular-nums",
     },
   },
 });
