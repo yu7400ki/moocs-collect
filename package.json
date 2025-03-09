@@ -20,6 +20,7 @@
     "@conform-to/zod": "^1.2.2",
     "@tanstack/react-router": "^1.112.0",
     "@tauri-apps/api": "^2.3.0",
+    "@tauri-apps/plugin-dialog": "~2",
     "@tauri-apps/plugin-store": "~2",
     "es-toolkit": "^1.32.0",
     "jotai": "^2.12.1",

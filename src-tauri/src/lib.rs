@@ -1,5 +1,5 @@
 use std::sync::Mutex;
-use tauri::{Builder, Manager};
+use tauri::Manager;
 
 mod command;
 mod state;
@@ -11,8 +11,9 @@ fn greet(name: &str) -> String {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    Builder::default()
+    tauri::Builder::default()
         .plugin(tauri_plugin_store::Builder::new().build())
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
