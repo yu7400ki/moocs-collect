@@ -28,6 +28,9 @@ importers:
       '@tauri-apps/api':
         specifier: ^2.3.0
         version: 2.3.0
+      '@tauri-apps/plugin-store':
+        specifier: ~2
+        version: 2.2.0
       es-toolkit:
         specifier: ^1.32.0
         version: 1.32.0
@@ -1124,6 +1127,9 @@ packages:
     resolution: {integrity: sha512-xewcw/ZsCqgilTy2h7+pp2Baxoy7zLR2wXOV7SZLzkb6SshHVbm1BFAjn8iFATURRW85KLzl6wSGJ2dQHjVHqw==}
     engines: {node: '>= 10'}
     hasBin: true
+
+  '@tauri-apps/plugin-store@2.2.0':
+    resolution: {integrity: sha512-hJTRtuJis4w5fW1dkcgftsYxKXK0+DbAqurZ3CURHG5WkAyyZgbxpeYctw12bbzF9ZbZREXZklPq8mocCC3Sgg==}
 
   '@ts-morph/common@0.25.0':
     resolution: {integrity: sha512-kMnZz+vGGHi4GoHnLmMhGNjm44kGtKUXGnOvrKmMwAuvNjM/PgKVGfUnL7IDvK7Jb2QQ82jq3Zmp04Gy+r3Dkg==}
@@ -3512,6 +3518,10 @@ snapshots:
       '@tauri-apps/cli-win32-arm64-msvc': 2.3.1
       '@tauri-apps/cli-win32-ia32-msvc': 2.3.1
       '@tauri-apps/cli-win32-x64-msvc': 2.3.1
+
+  '@tauri-apps/plugin-store@2.2.0':
+    dependencies:
+      '@tauri-apps/api': 2.3.0
 
   '@ts-morph/common@0.25.0':
     dependencies:
