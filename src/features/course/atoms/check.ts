@@ -1,7 +1,7 @@
 import type { MaybePromise } from "@/utils/types";
 import { type Atom, type WritableAtom, atom } from "jotai";
 import { soon } from "jotai-derive";
-import { courseSelectIdAtom } from "./course";
+import { courseSelectIdAtom, coursesAtom } from "./course";
 import { lectureSelectIdAtom, lecturesAtom } from "./lecture";
 import { pagesAtom } from "./page";
 
@@ -11,15 +11,22 @@ export type Node = {
   children?: Node[];
 };
 
-function createTreeAtom(initialNode: Node) {
+function createTreeAtom(
+  initialNode: Node,
+  childrenDataAtom: Atom<{ id: string }[] | Promise<{ id: string }[]> | null>,
+) {
   const internalAtom = atom(initialNode);
   return atom(
     (get) => {
-      const tree = get(internalAtom);
-      return {
-        ...tree,
-        children: tree.children ?? [],
-      };
+      return soon(get(childrenDataAtom), (data) => {
+        const tree = get(internalAtom);
+        const set = new Set(data?.map(({ id }) => id));
+        const children = tree.children?.filter((node) => set.has(node.id));
+        return {
+          ...tree,
+          children: children ?? [],
+        };
+      });
     },
     (_, set, children: Node[]) => {
       set(internalAtom, (prev) => {
@@ -106,11 +113,14 @@ function createChildTreeAtom<R>(
   return childAtom;
 }
 
-export const courseTreeAtom = createTreeAtom({
-  id: "root",
-  checked: true,
-  children: [],
-});
+export const courseTreeAtom = createTreeAtom(
+  {
+    id: "root",
+    checked: true,
+    children: [],
+  },
+  coursesAtom,
+);
 
 export const lectureTreeAtom = createChildTreeAtom(
   courseTreeAtom,
