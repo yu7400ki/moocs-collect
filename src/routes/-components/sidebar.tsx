@@ -5,6 +5,7 @@ import {
   FolderOpenIcon,
   PanelLeftCloseIcon,
   PanelLeftOpenIcon,
+  SettingsIcon,
 } from "lucide-react";
 import { useState } from "react";
 import { css, cx } from "styled-system/css";
@@ -19,7 +20,7 @@ export function Sidebar() {
         css({
           w: "fit-content",
           display: "grid",
-          gridTemplateRows: "1fr",
+          gridTemplateRows: "1fr auto",
           transition: "width 0.2s",
           interpolateSize: "allow-keywords",
           _expanded: {
@@ -47,31 +48,21 @@ export function Sidebar() {
         <SidebarButton asChild>
           <Link to="/">
             <FolderOpenIcon />
-            <span
-              className={css({
-                display: "none",
-                _groupExpanded: {
-                  display: "block",
-                },
-              })}
-            >
-              科目一覧
-            </span>
+            <span>科目一覧</span>
           </Link>
         </SidebarButton>
         <SidebarButton asChild>
           <Link to="/download">
             <DownloadIcon />
-            <span
-              className={css({
-                display: "none",
-                _groupExpanded: {
-                  display: "block",
-                },
-              })}
-            >
-              ダウンロード
-            </span>
+            <span>ダウンロード</span>
+          </Link>
+        </SidebarButton>
+      </div>
+      <div>
+        <SidebarButton asChild>
+          <Link to="/settings">
+            <SettingsIcon />
+            <span>設定</span>
           </Link>
         </SidebarButton>
       </div>
@@ -98,6 +89,12 @@ function SidebarButton({
           fontWeight: "normal",
           _currentPage: {
             bg: "colorPalette.a3",
+          },
+          "& > span": {
+            display: "none",
+            _groupExpanded: {
+              display: "block",
+            },
           },
         }),
         className,
