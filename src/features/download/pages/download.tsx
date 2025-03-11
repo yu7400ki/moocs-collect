@@ -10,13 +10,13 @@ export function DownloadPage() {
 
   return (
     <Tabs.Root defaultValue="in-queue">
-      <Tabs.List>
+      <Tabs.List px="4" gap="4">
         {options.map((option) => (
           <Tabs.Trigger
             key={option.id}
             value={option.id}
             py="0"
-            px="6"
+            px="4"
             fontWeight="normal"
           >
             {option.label}

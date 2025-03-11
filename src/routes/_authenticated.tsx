@@ -39,6 +39,7 @@ function Component() {
           border: "1px solid",
           borderLeft: "1px solid",
           borderColor: "border.subtle",
+          overflowX: "auto",
         })}
       >
         <Outlet />

@@ -42,7 +42,7 @@ export function ListItem({ page, status }: Props) {
       >
         {page.title}
       </p>
-      <p
+      <div
         className={css({
           gridArea: "status",
           justifySelf: "end",
@@ -52,7 +52,7 @@ export function ListItem({ page, status }: Props) {
         })}
       >
         <Status status={status} />
-      </p>
+      </div>
     </div>
   );
 }
