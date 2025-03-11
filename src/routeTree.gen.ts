@@ -14,6 +14,7 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as LoginImport } from './routes/login'
 import { Route as AuthenticatedImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedSettingsImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedDownloadImport } from './routes/_authenticated/download'
 
 // Create/Update Routes
@@ -32,6 +33,12 @@ const AuthenticatedRoute = AuthenticatedImport.update({
 const AuthenticatedIndexRoute = AuthenticatedIndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
+const AuthenticatedSettingsRoute = AuthenticatedSettingsImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 
@@ -66,6 +73,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDownloadImport
       parentRoute: typeof AuthenticatedImport
     }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsImport
+      parentRoute: typeof AuthenticatedImport
+    }
     '/_authenticated/': {
       id: '/_authenticated/'
       path: '/'
@@ -80,11 +94,13 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedDownloadRoute: typeof AuthenticatedDownloadRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDownloadRoute: AuthenticatedDownloadRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 
@@ -96,12 +112,14 @@ export interface FileRoutesByFullPath {
   '': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/download': typeof AuthenticatedDownloadRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/': typeof AuthenticatedIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/download': typeof AuthenticatedDownloadRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/': typeof AuthenticatedIndexRoute
 }
 
@@ -110,19 +128,21 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/download': typeof AuthenticatedDownloadRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '' | '/login' | '/download' | '/'
+  fullPaths: '' | '/login' | '/download' | '/settings' | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/download' | '/'
+  to: '/login' | '/download' | '/settings' | '/'
   id:
     | '__root__'
     | '/_authenticated'
     | '/login'
     | '/_authenticated/download'
+    | '/_authenticated/settings'
     | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
@@ -155,6 +175,7 @@ export const routeTree = rootRoute
       "filePath": "_authenticated.tsx",
       "children": [
         "/_authenticated/download",
+        "/_authenticated/settings",
         "/_authenticated/"
       ]
     },
@@ -163,6 +184,10 @@ export const routeTree = rootRoute
     },
     "/_authenticated/download": {
       "filePath": "_authenticated/download.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/settings": {
+      "filePath": "_authenticated/settings.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/": {
