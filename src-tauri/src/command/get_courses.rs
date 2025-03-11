@@ -23,11 +23,12 @@ impl From<moocs::Course> for Course {
 
 #[tauri::command]
 pub async fn get_courses(
+    year: Option<u32>,
     client_state: State<'_, ClientState>,
     course_state: State<'_, Mutex<CourseState>>,
 ) -> Result<Vec<Course>, ()> {
     let client = &client_state.0;
-    let courses = moocs::Course::list(client, None).await.map_err(|_| ())?;
+    let courses = moocs::Course::list(client, year).await.map_err(|_| ())?;
 
     {
         let mut course_state_guard = course_state.lock().map_err(|_| ())?;

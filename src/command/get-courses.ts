@@ -1,6 +1,8 @@
 import { createCommand } from "./utils";
 
-export type Args = undefined;
+export type Args = {
+  year?: number;
+};
 
 export type Output = {
   year: number;

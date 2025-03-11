@@ -6,9 +6,11 @@ export function uniqueKey(course: Course) {
   return `${course.year}-${course.id}`;
 }
 
-async function _getCourses() {
-  const courses = await getCourseCommand();
+async function _getCourses(args: { year?: number } = {}) {
+  const courses = await getCourseCommand(args);
   return courses.map((course) => courseSchema.parse(course));
 }
 
-export const getCourses = memoizeAsync(_getCourses);
+export const getCourses = memoizeAsync(_getCourses, {
+  getCacheKey: (args) => args?.year,
+});
