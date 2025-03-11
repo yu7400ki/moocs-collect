@@ -52,7 +52,15 @@ export function SettingsForm() {
       </div>
       <Divider />
       <div className={css({ display: "grid", gap: 1.5 })}>
-        <p>年度</p>
+        <p>アーカイブ年度</p>
+        <span
+          className={css({
+            fontSize: "sm",
+            color: "fg.muted",
+          })}
+        >
+          未入力、無効な入力は最新の年度として扱われます。
+        </span>
         <NumberInput
           name="year"
           value={String(settings?.year ?? "")}
