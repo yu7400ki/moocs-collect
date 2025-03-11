@@ -1,7 +1,8 @@
+import { store } from "@/components/providers/jotai";
 import { Button } from "@/components/ui/button";
 import { enqueue } from "@/features/download/atoms/queue";
+import { getSettings } from "@/features/settings/services/settings";
 import type { MaybePromise } from "@/utils/types";
-import { useAtom } from "jotai";
 import { DownloadIcon } from "lucide-react";
 import { useCallback } from "react";
 import { useTransition } from "react";
@@ -51,7 +52,8 @@ function enqueuePages(pages: Page[]) {
 }
 
 async function retrievePages(node: Node) {
-  const courses = await delayedPromise(getCourses());
+  const settings = await getSettings();
+  const courses = await delayedPromise(getCourses(settings));
   const coursePairs = getCheckedPairs(node.children, courses);
 
   for (const [course, courseNode] of coursePairs) {
@@ -70,16 +72,16 @@ export function Download({
   onClick,
   ...props
 }: React.ComponentProps<typeof Button>) {
-  const [tree, setTree] = useAtom(courseTreeAtom);
   const [isPending, startTransition] = useTransition();
 
   const handleClick = useCallback(
     async (e: React.MouseEvent<HTMLButtonElement>) => {
       onClick?.(e);
+      const tree = await store.get(courseTreeAtom);
       await retrievePages(tree);
-      setTree([]);
+      store.set(courseTreeAtom, []);
     },
-    [tree, setTree, onClick],
+    [onClick],
   );
 
   return (
