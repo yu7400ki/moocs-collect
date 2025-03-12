@@ -171,6 +171,7 @@ dependencies = [
  "collect-core",
  "futures",
  "log",
+ "rayon",
  "reqwest",
  "serde",
  "serde_json",
@@ -865,10 +866,8 @@ dependencies = [
  "futures",
  "indicatif",
  "keyring",
- "lopdf",
  "rayon",
  "reqwest",
- "svg2pdf",
  "tokio",
 ]
 
@@ -881,9 +880,12 @@ dependencies = [
  "bytes",
  "futures",
  "lol_html",
+ "lopdf",
+ "rayon",
  "regex",
  "reqwest",
  "scraper",
+ "svg2pdf",
  "tokio",
  "unicode_escape",
 ]

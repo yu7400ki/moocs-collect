@@ -1,5 +1,3 @@
-mod pdf;
-
 use keyring::Entry;
 use rayon::prelude::*;
 use std::{
@@ -12,6 +10,7 @@ use clap::Parser;
 use collect::{
     iniad::{login_google, login_moocs, Credentials},
     moocs::{Course, LecturePage, Slide, SlideContent},
+    pdf,
 };
 use dialoguer::{console::Style, Input, Password, Select};
 use indicatif::{ProgressBar, ProgressStyle};

@@ -30,6 +30,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             greet,
+            command::download_slides::download_slides,
             command::login::login,
             command::get_courses::get_courses,
             command::get_lectures::get_lectures,

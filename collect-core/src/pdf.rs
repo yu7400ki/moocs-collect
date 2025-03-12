@@ -1,4 +1,4 @@
-use collect::moocs::SlideContent;
+use crate::moocs::SlideContent;
 use lopdf::dictionary;
 use lopdf::{Document, Object};
 use rayon::prelude::*;

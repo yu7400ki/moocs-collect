@@ -9,10 +9,8 @@ anyhow = { workspace = true }
 reqwest = { workspace = true }
 tokio = { workspace = true }
 futures = { workspace = true }
+rayon = { workspace = true }
 clap = { version = "4.5.4", features = ["derive"] }
 dialoguer = "0.11.0"
 indicatif = "0.17.8"
-svg2pdf = { git = "https://github.com/typst/svg2pdf", rev="b9f1513" }
-lopdf = "0.32.0"
-rayon = "1.10.0"
 keyring = "2.3.3"
