@@ -1,7 +1,7 @@
 import type { Page } from "@/features/course/schemas/page";
+import { atom } from "jotai";
 import PQueue from "p-queue";
 import { downloadSlides } from "../services/download-slides";
-import { atom } from "jotai";
 
 const queue = new PQueue({ concurrency: 5 });
 

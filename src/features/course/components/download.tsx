@@ -1,5 +1,6 @@
 import { store } from "@/components/providers/jotai";
 import { Button } from "@/components/ui/button";
+import { queueAtom } from "@/features/download/atoms/queue";
 import { getSettings } from "@/features/settings/services/settings";
 import type { MaybePromise } from "@/utils/types";
 import { DownloadIcon } from "lucide-react";
@@ -10,7 +11,6 @@ import type { Page } from "../schemas/page";
 import { getCourses } from "../services/courses";
 import { getLectures } from "../services/lectures";
 import { getPages } from "../services/pages";
-import { queueAtom } from "@/features/download/atoms/queue";
 
 async function delayedPromise<T>(value: MaybePromise<T>, ms = 1000) {
   if (value instanceof Promise) {
