@@ -58,3 +58,12 @@ export const queueAtom = atom(
     });
   },
 );
+
+export const retryAtom = atom(null, (_, set, page: Page) => {
+  set(errorQueue, (prev) => {
+    const next = new Set(prev);
+    next.delete(page);
+    return next;
+  });
+  set(queueAtom, page);
+});
