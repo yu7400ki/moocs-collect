@@ -4,7 +4,7 @@ import { css } from "styled-system/css";
 
 export type Props = {
   page: Page;
-  status: "pending" | "running" | "completed";
+  status: "pending" | "running" | "completed" | "error";
 };
 
 export function ListItem({ page, status }: Props) {
@@ -66,6 +66,9 @@ function Status({ status }: Pick<Props, "status">) {
       return <Spinner size="sm" />;
     }
     case "completed": {
+      return null;
+    }
+    case "error": {
       return null;
     }
     default: {
