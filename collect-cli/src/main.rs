@@ -158,7 +158,7 @@ async fn main() -> anyhow::Result<()> {
     };
     if !logged_in {
         eprintln!("ログインに失敗しました\nユーザー名とパスワードを確認してください");
-        entry.delete_password().ok();
+        entry.delete_credential().ok();
         std::process::exit(1);
     }
 
