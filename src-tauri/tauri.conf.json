@@ -32,6 +32,13 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDI3MUYyRDdDRTFDMDM5MTIKUldRU09jRGhmQzBmSjUyZE9LZlRYQnd3T0M1dk1pZG45Vnk0eVVnRnlFNWxiSm9Pc1JnZTEwbTAK",
+      "endpoint": ["https://yu7400ki.github.io/moocs-collect/latest.json"]
+    }
   }
 }
