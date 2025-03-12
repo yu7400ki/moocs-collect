@@ -72,6 +72,11 @@ pub async fn login_google(client: &Client, credentials: &Credentials) -> anyhow:
         let response = login(client, credentials, &action).await?;
         let body = response.text().await?;
         document = Html::parse_document(&body);
+        let root_element = document.root_element();
+        let form = extract_form_action(&root_element, "form[name='saml-post-binding']");
+        if form.is_err() {
+            return Ok(false);
+        }
     }
 
     let (action, saml_response, relay_state) = {
