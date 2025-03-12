@@ -24,10 +24,10 @@ export function DownloadPage() {
         ))}
         <Tabs.Indicator />
       </Tabs.List>
-      <Tabs.Content value="in-queue" overflowY="auto" pt="0">
+      <Tabs.Content value="in-queue" overflowY="auto" pt="0" h="full">
         <InQueue />
       </Tabs.Content>
-      <Tabs.Content value="completed" overflowY="auto" pt="0">
+      <Tabs.Content value="completed" overflowY="auto" pt="0" h="full">
         <Completed />
       </Tabs.Content>
     </Tabs.Root>
