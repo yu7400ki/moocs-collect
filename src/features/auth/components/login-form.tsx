@@ -1,11 +1,14 @@
+import { getCredential } from "@/command/get-credential";
 import { login } from "@/command/login";
 import { store } from "@/components/providers/jotai";
 import { router } from "@/components/providers/tanstack-router";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Field } from "@/components/ui/field";
 import { useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
-import { useActionState } from "react";
+import { memoize } from "es-toolkit/function";
+import { use, useActionState, useMemo } from "react";
 import { css } from "styled-system/css";
 import { z } from "zod";
 import { authenticatedAtom } from "../atoms/authenticated";
@@ -17,6 +20,11 @@ const schema = z.object({
   password: z
     .string({ message: "パスワードを入力してください" })
     .nonempty("パスワードを入力してください"),
+  remember: z.boolean().default(false),
+});
+
+const memoizedGetCredential = memoize(getCredential, {
+  getCacheKey: ({ username }) => username,
 });
 
 async function loginAction(_: unknown, formData: FormData) {
@@ -24,6 +32,14 @@ async function loginAction(_: unknown, formData: FormData) {
 
   if (submission.status !== "success") {
     return submission.reply();
+  }
+
+  if (submission.value.remember) {
+    window.localStorage.setItem("remember", "true");
+    window.localStorage.setItem("username", submission.value.username);
+  } else {
+    window.localStorage.removeItem("remember");
+    window.localStorage.removeItem("username");
   }
 
   try {
@@ -44,6 +60,15 @@ async function loginAction(_: unknown, formData: FormData) {
 }
 
 export function LoginForm() {
+  const remember = useMemo(
+    () => window.localStorage.getItem("remember") === "true",
+    [],
+  );
+  const username = useMemo(
+    () => window.localStorage.getItem("username") ?? "",
+    [],
+  );
+  const password = use(memoizedGetCredential({ username }));
   const [lastResult, action, isPending] = useActionState(
     loginAction,
     undefined,
@@ -55,6 +80,11 @@ export function LoginForm() {
     },
     shouldValidate: "onSubmit",
     shouldRevalidate: "onInput",
+    defaultValue: {
+      username,
+      password: password ?? "",
+      remember,
+    },
   });
 
   return (
@@ -76,6 +106,7 @@ export function LoginForm() {
             fontFamily: "latin",
             fontVariantNumeric: "initial",
           })}
+          autoComplete="off"
         />
         {fields.username.errors?.map((error) => (
           <Field.ErrorText key={error}>{error}</Field.ErrorText>
@@ -92,11 +123,20 @@ export function LoginForm() {
             fontFamily: "latin",
             fontVariantNumeric: "initial",
           })}
+          autoComplete="off"
         />
         {fields.password.errors?.map((error) => (
           <Field.ErrorText key={error}>{error}</Field.ErrorText>
         ))}
       </Field.Root>
+      <Checkbox
+        size="sm"
+        key={fields.remember.key}
+        defaultChecked={fields.remember.initialValue === "on"}
+        name={fields.remember.name}
+      >
+        認証情報を保持する
+      </Checkbox>
       <div
         className={css({
           display: "grid",

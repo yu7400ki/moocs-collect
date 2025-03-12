@@ -162,6 +162,7 @@ version = "0.2.1"
 dependencies = [
  "collect-core",
  "futures",
+ "keyring",
  "log",
  "rayon",
  "reqwest",

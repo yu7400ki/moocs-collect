@@ -33,6 +33,7 @@ pub fn run() {
             command::download_slides::download_slides,
             command::login::login,
             command::get_courses::get_courses,
+            command::get_credential::get_credential,
             command::get_lectures::get_lectures,
             command::get_pages::get_pages,
         ])
