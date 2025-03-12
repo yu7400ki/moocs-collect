@@ -35,7 +35,6 @@ pub fn run() {
             command::get_courses::get_courses,
             command::get_lectures::get_lectures,
             command::get_pages::get_pages,
-            command::get_slides::get_slides,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
