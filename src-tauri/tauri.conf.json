@@ -38,7 +38,7 @@
   "plugins": {
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDI3MUYyRDdDRTFDMDM5MTIKUldRU09jRGhmQzBmSjUyZE9LZlRYQnd3T0M1dk1pZG45Vnk0eVVnRnlFNWxiSm9Pc1JnZTEwbTAK",
-      "endpoint": ["https://yu7400ki.github.io/moocs-collect/latest.json"]
+      "endpoints": ["https://yu7400ki.github.io/moocs-collect/latest.json"]
     }
   }
 }
