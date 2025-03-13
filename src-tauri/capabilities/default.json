@@ -3,5 +3,11 @@
   "identifier": "default",
   "description": "enables the default permissions",
   "windows": ["main"],
-  "permissions": ["core:default", "store:default", "dialog:default"]
+  "permissions": [
+    "core:default",
+    "store:default",
+    "dialog:default",
+    "process:default",
+    "process:allow-restart"
+  ]
 }
