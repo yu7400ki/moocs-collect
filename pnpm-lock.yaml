@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   '@park-ui/panda-preset':
-    hash: df6cjqkwpr6p6qngpzv5tvmpoa
+    hash: a8bf02b4df9c958efafe904d945a4a84df3031a321899e8b80b287e87379c368
     path: patches/@park-ui__panda-preset.patch
 
 importers:
@@ -82,7 +82,7 @@ importers:
         version: 0.53.0(typescript@5.8.2)
       '@park-ui/panda-preset':
         specifier: ^0.43.1
-        version: 0.43.1(patch_hash=df6cjqkwpr6p6qngpzv5tvmpoa)(@internationalized/date@3.7.0)(@pandacss/dev@0.53.0(typescript@5.8.2))
+        version: 0.43.1(patch_hash=a8bf02b4df9c958efafe904d945a4a84df3031a321899e8b80b287e87379c368)(@internationalized/date@3.7.0)(@pandacss/dev@0.53.0(typescript@5.8.2))
       '@tanstack/router-devtools':
         specifier: ^1.112.0
         version: 1.112.0(@tanstack/react-router@1.112.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(csstype@3.1.3)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -3346,7 +3346,7 @@ snapshots:
 
   '@pandacss/types@0.53.0': {}
 
-  '@park-ui/panda-preset@0.43.1(patch_hash=df6cjqkwpr6p6qngpzv5tvmpoa)(@internationalized/date@3.7.0)(@pandacss/dev@0.53.0(typescript@5.8.2))':
+  '@park-ui/panda-preset@0.43.1(patch_hash=a8bf02b4df9c958efafe904d945a4a84df3031a321899e8b80b287e87379c368)(@internationalized/date@3.7.0)(@pandacss/dev@0.53.0(typescript@5.8.2))':
     dependencies:
       '@ark-ui/anatomy': 3.5.0(@internationalized/date@3.7.0)
       '@pandacss/dev': 0.53.0(typescript@5.8.2)
