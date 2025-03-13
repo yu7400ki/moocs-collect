@@ -1,0 +1,74 @@
+diff --git a/dist/index.js b/dist/index.js
+index f35278f6f599ab8723ced8ea02f1fe5c1037af94..27dd6b654b53fbaaf0ff1413a31781bce1f647cd 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -55,7 +55,7 @@ var globalCss = defineGlobalStyles({
+     color: "fg.subtle"
+   },
+   "*::selection": {
+-    bg: "accent.a4"
++    bg: "colorPalette.a4"
+   }
+ });
+ 
+@@ -528,12 +528,12 @@ var button = defineRecipe2({
+           outlineOffset: "2px"
+         },
+         _selected: {
+-          background: "accent.default",
+-          borderColor: "accent.default",
+-          color: "accent.fg",
++          background: "colorPalette.default",
++          borderColor: "colorPalette.default",
++          color: "colorPalette.fg",
+           _hover: {
+-            background: "accent.emphasized",
+-            borderColor: "accent.emphasized"
++            background: "colorPalette.emphasized",
++            borderColor: "colorPalette.emphasized"
+           }
+         }
+       },
+@@ -1547,7 +1547,7 @@ var fieldset = defineSlotRecipe16({
+       rowGap: "1.5",
+       gridTemplateAreas: {
+         base: `
+-        "legend legend" 
++        "legend legend"
+         "helperText helperText"
+         "control control"
+         "errorText errorText"
+@@ -4427,7 +4427,7 @@ var treeView = defineSlotRecipe41({
+       }
+     },
+     branchIndicator: {
+-      color: "accent.default",
++      color: "colorPalette.default",
+       transformOrigin: "center",
+       transitionDuration: "normal",
+       transitionProperty: "transform",
+@@ -4468,11 +4468,11 @@ var treeView = defineSlotRecipe41({
+         color: "fg.default"
+       },
+       _selected: {
+-        background: "accent.a2",
+-        color: "accent.text",
++        background: "colorPalette.a2",
++        color: "colorPalette.text",
+         _hover: {
+-          background: "accent.a2",
+-          color: "accent.text"
++          background: "colorPalette.a2",
++          color: "colorPalette.text"
+         },
+         _before: {
+           content: '""',
+@@ -4481,7 +4481,7 @@ var treeView = defineSlotRecipe41({
+           top: "0",
+           width: "2px",
+           height: "full",
+-          bg: "accent.default",
++          bg: "colorPalette.default",
+           zIndex: "1"
+         }
+       }

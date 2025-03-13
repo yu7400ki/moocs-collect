@@ -1,6 +1,7 @@
+use crate::utils::extract_element_attribute;
 use regex::Regex;
 use reqwest::{Client, Response};
-use scraper::{node::Element, Html};
+use scraper::{ElementRef, Html};
 
 #[derive(Debug, Clone)]
 pub struct Credentials {
@@ -11,10 +12,8 @@ pub struct Credentials {
 async fn login(
     client: &Client,
     credentials: &Credentials,
-    form: &Element,
+    action: &str,
 ) -> reqwest::Result<Response> {
-    let action = form.attr("action").unwrap();
-
     let response = client
         .post(action)
         .form(&[
@@ -27,113 +26,93 @@ async fn login(
     Ok(response)
 }
 
-fn extract_signin_form(document: &Html) -> Option<Element> {
-    document
-        .select(&scraper::Selector::parse("form.form-signin").unwrap())
-        .next()
-        .and_then(|form| Some(form.value().clone()))
+fn extract_form_action(document: &ElementRef, query: &str) -> anyhow::Result<String> {
+    extract_element_attribute(document, query, "action")
 }
 
-fn logged_in(success: bool) -> anyhow::Result<()> {
-    match success {
-        true => Ok(()),
-        false => Err(anyhow::anyhow!("Not logged in")),
-    }
+fn extract_input_value(document: &ElementRef, query: &str) -> anyhow::Result<String> {
+    extract_element_attribute(document, query, "value")
 }
 
-pub async fn check_logged_in_moocs(client: &Client) -> reqwest::Result<anyhow::Result<()>> {
+pub async fn check_logged_in_moocs(client: &Client) -> anyhow::Result<bool> {
     let url = "https://moocs.iniad.org/account";
     let response = client.get(url).send().await?;
     let success = response.url().path() == "/account";
-    Ok(logged_in(success))
+    Ok(success)
 }
 
-pub async fn check_logged_in_google(client: &Client) -> reqwest::Result<anyhow::Result<()>> {
+pub async fn check_logged_in_google(client: &Client) -> anyhow::Result<bool> {
     let url = "https://myaccount.google.com";
     let response = client.get(url).send().await?;
     let success = response.url().domain() == Some("myaccount.google.com");
-    Ok(logged_in(success))
+    Ok(success)
 }
 
-pub async fn login_moocs(client: &Client, credentials: &Credentials) -> reqwest::Result<bool> {
+pub async fn login_moocs(client: &Client, credentials: &Credentials) -> anyhow::Result<bool> {
     let login_url = "https://moocs.iniad.org/auth/iniad";
     let response = client.get(login_url).send().await?;
     let body = response.text().await?;
     let document = Html::parse_document(&body);
-    let form = extract_signin_form(&document);
-    if let Some(form) = form {
-        login(client, credentials, &form).await?;
+    let action = extract_form_action(&document.root_element(), "form.form-signin");
+    if action.is_ok() {
+        let action = action?;
+        login(client, credentials, &action).await?;
     }
-    Ok(check_logged_in_moocs(client).await?.is_ok())
+    Ok(check_logged_in_moocs(client).await?)
 }
 
-pub async fn login_google(client: &Client, credentials: &Credentials) -> reqwest::Result<bool> {
+pub async fn login_google(client: &Client, credentials: &Credentials) -> anyhow::Result<bool> {
     let login_url = "https://accounts.google.com/samlredirect?domain=iniad.org";
     let response = client.get(login_url).send().await?;
     let body = response.text().await?;
     let mut document = Html::parse_document(&body);
-    let form = extract_signin_form(&document);
-    if let Some(form) = form {
-        let response = login(client, credentials, &form).await?;
+    let action = extract_form_action(&document.root_element(), "form.form-signin");
+    if action.is_ok() {
+        let action = action?;
+        let response = login(client, credentials, &action).await?;
         let body = response.text().await?;
         document = Html::parse_document(&body);
+        let root_element = document.root_element();
+        let form = extract_form_action(&root_element, "form[name='saml-post-binding']");
+        if form.is_err() {
+            return Ok(false);
+        }
     }
 
-    let form = document
-        .select(&scraper::Selector::parse("form[name='saml-post-binding']").unwrap())
-        .next();
-    if form.is_none() {
-        return Ok(false);
-    }
-    let form = form.unwrap();
-    let action = form.attr("action").unwrap();
-    let saml_response = form
-        .select(&scraper::Selector::parse("input[name='SAMLResponse']").unwrap())
-        .next()
-        .and_then(|input| Some(input.value().attr("value").unwrap()))
-        .unwrap();
-    let relay_state = form
-        .select(&scraper::Selector::parse("input[name='RelayState']").unwrap())
-        .next()
-        .and_then(|input| Some(input.value().attr("value").unwrap()))
-        .unwrap();
+    let (action, saml_response, relay_state) = {
+        let root_element = document.root_element();
+        (
+            extract_form_action(&root_element, "form[name='saml-post-binding']")?,
+            extract_input_value(&root_element, "input[name='SAMLResponse']")?,
+            extract_input_value(&root_element, "input[name='RelayState']")?,
+        )
+    };
     let response = client
-        .post(action)
-        .form(&[("SAMLResponse", saml_response), ("RelayState", relay_state)])
+        .post(&action)
+        .form(&[
+            ("SAMLResponse", &saml_response),
+            ("RelayState", &relay_state),
+        ])
         .send()
         .await?;
 
     let body = response.text().await?;
     let document = Html::parse_document(&body);
-    let form = document
-        .select(&scraper::Selector::parse("form[name='hiddenpost']").unwrap())
-        .next();
-    if form.is_none() {
-        return Ok(false);
-    }
-    let form = form.unwrap();
-    let action = form.attr("action").unwrap();
-    let relay_state = form
-        .select(&scraper::Selector::parse("input[name='RelayState']").unwrap())
-        .next()
-        .and_then(|input| Some(input.value().attr("value").unwrap()))
-        .unwrap();
-    let saml_response = form
-        .select(&scraper::Selector::parse("input[name='SAMLResponse']").unwrap())
-        .next()
-        .and_then(|input| Some(input.value().attr("value").unwrap()))
-        .unwrap();
-    let trampoline = form
-        .select(&scraper::Selector::parse("input[name='trampoline']").unwrap())
-        .next()
-        .and_then(|input| Some(input.value().attr("value").unwrap()))
-        .unwrap();
+    let (action, relay_state, saml_response, trampoline) = {
+        let root_element = document.root_element();
+        (
+            extract_form_action(&root_element, "form[name='hiddenpost']")?,
+            extract_input_value(&root_element, "input[name='RelayState']")?,
+            extract_input_value(&root_element, "input[name='SAMLResponse']")?,
+            extract_input_value(&root_element, "input[name='trampoline']")?,
+        )
+    };
     let response = client
-        .post(action)
+        .post(&action)
         .form(&[
-            ("RelayState", relay_state),
-            ("SAMLResponse", saml_response),
-            ("trampoline", trampoline),
+            ("RelayState", &relay_state),
+            ("SAMLResponse", &saml_response),
+            ("trampoline", &trampoline),
         ])
         .send()
         .await?;
@@ -148,5 +127,5 @@ pub async fn login_google(client: &Client, credentials: &Credentials) -> reqwest
     let url = regex.captures(&body).unwrap().get(1).unwrap().as_str();
     client.get(url.replace("&amp;", "&")).send().await?;
 
-    Ok(check_logged_in_google(client).await?.is_ok())
+    Ok(check_logged_in_google(client).await?)
 }

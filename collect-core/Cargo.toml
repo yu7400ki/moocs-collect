@@ -8,8 +8,13 @@ anyhow = { workspace = true }
 reqwest = { workspace = true }
 tokio = { workspace = true }
 futures = { workspace = true }
+rayon = { workspace = true }
+bitflags = { workspace = true }
 base64 = "0.22.1"
-lol_html = "1.2.1"
+lol_html = "2.2.0"
 regex = "1.10.4"
-scraper = "0.19.0"
+scraper = { version = "0.23.1", features = ["atomic"] }
 unicode_escape = "0.1.0"
+bytes = "1.10.0"
+svg2pdf = { git = "https://github.com/typst/svg2pdf", rev="b9f1513" }
+lopdf = "0.35.0"
