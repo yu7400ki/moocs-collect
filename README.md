@@ -2,6 +2,8 @@
 
 INIAD Moocs から授業スライドをダウンロードするアプリ
 
+![screenshot](assets/screenshot.png)
+
 ## cli
 
 ### ダウンロード
