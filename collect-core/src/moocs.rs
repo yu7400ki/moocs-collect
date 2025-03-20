@@ -244,7 +244,11 @@ impl LecturePage {
         let pagination = document
             .select(&scraper::Selector::parse("ul.pagination li").unwrap())
             .collect::<Vec<_>>();
-        let pagination = &pagination[1..pagination.len() - 1];
+        let pagination = if pagination.len() > 2 {
+            &pagination[1..pagination.len() - 1]
+        } else {
+            return vec![];
+        };
         let pages = pagination
             .iter()
             .map(|li| -> anyhow::Result<(String, Option<Url>)> {
