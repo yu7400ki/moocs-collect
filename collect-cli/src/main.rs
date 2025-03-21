@@ -143,45 +143,18 @@ async fn process_slide(slide: &SlideContent, client: &Client) -> anyhow::Result<
     Ok(slide)
 }
 
-fn encode_base64(bytes: &[u8]) -> String {
-    let mime = Mime::from(bytes.as_ref());
-    let mime: &str = mime.into();
+pub fn encode_base64(bytes: &[u8]) -> String {
+    let kind = infer::get(&bytes);
+    let mime = kind
+        .and_then(|kind| Some(kind.mime_type()))
+        .unwrap_or("image/svg+xml");
+    let mime = match mime {
+        "text/xml" => "image/svg+xml",
+        _ => mime,
+    };
     let base64 = general_purpose::STANDARD.encode(&bytes);
     let base64 = format!("data:{};base64,{}", mime, base64);
     base64
-}
-
-#[derive(Debug, Clone)]
-pub enum Mime {
-    Svg,
-    Png,
-    Jpeg,
-    Gif,
-    Webp,
-}
-
-impl Into<&'static str> for Mime {
-    fn into(self) -> &'static str {
-        match self {
-            Mime::Svg => "image/svg+xml",
-            Mime::Png => "image/png",
-            Mime::Jpeg => "image/jpeg",
-            Mime::Gif => "image/gif",
-            Mime::Webp => "image/webp",
-        }
-    }
-}
-
-impl From<&[u8]> for Mime {
-    fn from(bytes: &[u8]) -> Self {
-        match bytes {
-            [0x89, 0x50, 0x4E, 0x47, ..] => Mime::Png,
-            [0xFF, 0xD8, ..] => Mime::Jpeg,
-            [0x47, 0x49, 0x46, 0x38, ..] => Mime::Gif,
-            [0x52, 0x49, 0x46, 0x46, ..] => Mime::Webp,
-            _ => Mime::Svg,
-        }
-    }
 }
 
 #[tokio::main]

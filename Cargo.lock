@@ -798,6 +798,7 @@ dependencies = [
  "dialoguer",
  "futures",
  "indicatif",
+ "infer",
  "keyring",
  "rayon",
  "reqwest",
