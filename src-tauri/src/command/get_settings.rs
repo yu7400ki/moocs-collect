@@ -3,5 +3,5 @@ use tauri::AppHandle;
 
 #[tauri::command]
 pub async fn get_settings(app: AppHandle) -> Settings {
-    Settings::get(&app)
+    Settings::from(&app)
 }

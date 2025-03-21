@@ -1,4 +1,7 @@
-use std::{collections::HashMap, sync::Arc};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::Arc,
+};
 
 use bytes::Bytes;
 use regex::Regex;
@@ -403,6 +406,16 @@ impl SlideContent {
             .map(|s| Svg::new(s))
             .collect();
         Ok(svgs)
+    }
+
+    pub fn extract_image_url(&self) -> Vec<String> {
+        self.content
+            .iter()
+            .map(|svg| svg.extract_image_url())
+            .flatten()
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .collect()
     }
 
     pub async fn fetch_images(&self, client: &Client) -> anyhow::Result<HashMap<String, Bytes>> {

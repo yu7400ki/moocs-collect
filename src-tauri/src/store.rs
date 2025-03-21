@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+
+use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tauri::{AppHandle, Manager};
@@ -38,8 +41,10 @@ impl Settings {
             year,
         }
     }
+}
 
-    pub fn get(app: &AppHandle) -> Self {
+impl From<&AppHandle> for Settings {
+    fn from(app: &AppHandle) -> Self {
         app.get_store(STORE_NAME)
             .expect("failed to get store")
             .get(Self::KEY)
@@ -55,6 +60,64 @@ impl Into<Value> for Settings {
 }
 
 impl TryFrom<Value> for Settings {
+    type Error = serde_json::Error;
+
+    fn try_from(value: Value) -> Result<Self, Self::Error> {
+        serde_json::from_value(value)
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct ImageCacheEntry {
+    pub url: String,
+    pub path: String,
+    pub last_modified: DateTime<Utc>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+pub struct ImageCache(HashMap<String, ImageCacheEntry>);
+
+impl ImageCache {
+    pub const KEY: &'static str = "image_cache";
+
+    pub fn new() -> Self {
+        Self(HashMap::new())
+    }
+
+    pub fn insert(&mut self, key: String, entry: ImageCacheEntry) -> Option<ImageCacheEntry> {
+        self.0.insert(key, entry)
+    }
+
+    pub fn get(&self, key: &str) -> Option<&ImageCacheEntry> {
+        self.0.get(key)
+    }
+
+    pub fn save(&self, app: &AppHandle) -> tauri_plugin_store::Result<()> {
+        let value: Value = self.clone().into();
+        let store = app.get_store(STORE_NAME).expect("failed to get store");
+        store.set(Self::KEY, value);
+        store.save()
+    }
+}
+
+impl From<&AppHandle> for ImageCache {
+    fn from(app: &AppHandle) -> Self {
+        app.get_store(STORE_NAME)
+            .expect("failed to get store")
+            .get(Self::KEY)
+            .map(|value| value.try_into().unwrap_or_else(|_| Self::new()))
+            .unwrap_or_else(|| Self::new())
+    }
+}
+
+impl Into<Value> for ImageCache {
+    fn into(self) -> Value {
+        serde_json::to_value(self).expect("failed to convert ImageCache into Value")
+    }
+}
+
+impl TryFrom<Value> for ImageCache {
     type Error = serde_json::Error;
 
     fn try_from(value: Value) -> Result<Self, Self::Error> {

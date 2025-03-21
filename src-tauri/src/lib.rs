@@ -31,6 +31,7 @@ pub fn run() {
             app.manage(Mutex::new(state::PageState::default()));
             let _ = tauri_plugin_store::StoreBuilder::new(app, "store.json")
                 .default(store::Settings::KEY, store::Settings::default(app.handle()))
+                .default(store::ImageCache::KEY, store::ImageCache::default())
                 .build()?;
             Ok(())
         })
