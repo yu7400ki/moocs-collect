@@ -2,12 +2,12 @@ use rayon::prelude::*;
 use std::sync::Mutex;
 
 use crate::state::{ClientState, PageState};
+use crate::store::Settings;
 use collect::{
     moocs::{self, Lecture, Slide, SlideContent},
     pdf,
 };
-use tauri::{Manager, State};
-use tauri_plugin_store::StoreExt;
+use tauri::State;
 
 #[tauri::command]
 pub async fn download_slides(
@@ -30,8 +30,9 @@ pub async fn download_slides(
             .ok_or(())?
     };
 
-    let download_dir = get_download_dir(&app)?;
-    let lecture_dir = get_lecture_dir(&download_dir, &page.lecture);
+    let settings = Settings::get(&app);
+
+    let lecture_dir = get_lecture_dir(&settings.download_dir, &page.lecture);
 
     let slide = moocs::Slide::list(client, page).await.map_err(|_| ())?;
 
@@ -45,35 +46,9 @@ pub async fn download_slides(
     .collect::<Result<Vec<_>, _>>()
     .map_err(|_| ())?;
 
-    let contents =
-        futures::future::join_all(contents.iter().map(|content| content.process(client)))
-            .await
-            .into_iter()
-            .collect::<Result<Vec<_>, _>>()
-            .map_err(|_| ())?;
-
     save_slides(&slide, &contents, &lecture_dir)?;
 
     Ok(())
-}
-
-fn get_download_dir(app: &tauri::AppHandle) -> Result<std::path::PathBuf, ()> {
-    let store = app.store("store.json").map_err(|_| ())?;
-    store
-        .get("settings")
-        .and_then(|settings| settings.get("downloadDir").cloned())
-        .and_then(|download_dir| download_dir.as_str().map(String::from))
-        .or_else(|| {
-            let document_dir = app.path().document_dir().ok()?;
-            Some(
-                document_dir
-                    .join("moocs-collect")
-                    .to_string_lossy()
-                    .to_string(),
-            )
-        })
-        .ok_or(())
-        .map(std::path::PathBuf::from)
 }
 
 fn sanitize_filename(filename: &str) -> String {

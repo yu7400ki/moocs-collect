@@ -3,6 +3,7 @@ use tauri::Manager;
 
 mod command;
 mod state;
+mod store;
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -28,6 +29,9 @@ pub fn run() {
             app.manage(Mutex::new(state::CourseState::default()));
             app.manage(Mutex::new(state::LectureState::default()));
             app.manage(Mutex::new(state::PageState::default()));
+            let _ = tauri_plugin_store::StoreBuilder::new(app, "store.json")
+                .default(store::Settings::KEY, store::Settings::default(app.handle()))
+                .build()?;
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -38,6 +42,7 @@ pub fn run() {
             command::get_credential::get_credential,
             command::get_lectures::get_lectures,
             command::get_pages::get_pages,
+            command::get_settings::get_settings,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
