@@ -6,6 +6,7 @@ use std::{
     time::Duration,
 };
 
+use base64::{engine::general_purpose, Engine};
 use clap::Parser;
 use collect::{
     iniad::{login_google, login_moocs, Credentials},
@@ -118,7 +119,7 @@ async fn save_slides_from_pages<P: AsRef<Path> + Sync>(
     let slide_contents = slide_contents
         .iter()
         .map(|slides| {
-            futures::future::join_all(slides.into_iter().map(|slide| slide.process(client)))
+            futures::future::join_all(slides.into_iter().map(|slide| process_slide(slide, client)))
         })
         .collect::<Vec<_>>();
     let slide_contents = futures::future::join_all(slide_contents)
@@ -130,6 +131,57 @@ async fn save_slides_from_pages<P: AsRef<Path> + Sync>(
         |(slides, contents)| -> Result<(), anyhow::Error> { save_slides(slides, contents, &path) },
     )?;
     Ok(())
+}
+
+async fn process_slide(slide: &SlideContent, client: &Client) -> anyhow::Result<SlideContent> {
+    let images = slide.fetch_images(client).await?;
+    let images = images
+        .into_iter()
+        .map(|(url, bytes)| (url, encode_base64(&bytes)))
+        .collect();
+    let slide = slide.embed_text()?.embed_images(&images)?;
+    Ok(slide)
+}
+
+fn encode_base64(bytes: &[u8]) -> String {
+    let mime = Mime::from(bytes.as_ref());
+    let mime: &str = mime.into();
+    let base64 = general_purpose::STANDARD.encode(&bytes);
+    let base64 = format!("data:{};base64,{}", mime, base64);
+    base64
+}
+
+#[derive(Debug, Clone)]
+pub enum Mime {
+    Svg,
+    Png,
+    Jpeg,
+    Gif,
+    Webp,
+}
+
+impl Into<&'static str> for Mime {
+    fn into(self) -> &'static str {
+        match self {
+            Mime::Svg => "image/svg+xml",
+            Mime::Png => "image/png",
+            Mime::Jpeg => "image/jpeg",
+            Mime::Gif => "image/gif",
+            Mime::Webp => "image/webp",
+        }
+    }
+}
+
+impl From<&[u8]> for Mime {
+    fn from(bytes: &[u8]) -> Self {
+        match bytes {
+            [0x89, 0x50, 0x4E, 0x47, ..] => Mime::Png,
+            [0xFF, 0xD8, ..] => Mime::Jpeg,
+            [0x47, 0x49, 0x46, 0x38, ..] => Mime::Gif,
+            [0x52, 0x49, 0x46, 0x46, ..] => Mime::Webp,
+            _ => Mime::Svg,
+        }
+    }
 }
 
 #[tokio::main]
@@ -274,10 +326,11 @@ async fn main() -> anyhow::Result<()> {
         .await
         .into_iter()
         .collect::<anyhow::Result<Vec<_>>>()?;
-    let content = futures::future::join_all(content.iter().map(|slide| slide.process(&client)))
-        .await
-        .into_iter()
-        .collect::<anyhow::Result<Vec<_>>>()?;
+    let content =
+        futures::future::join_all(content.iter().map(|slide| process_slide(slide, &client)))
+            .await
+            .into_iter()
+            .collect::<anyhow::Result<Vec<_>>>()?;
     save_slides(&slides, &content, &path)?;
 
     Ok(())

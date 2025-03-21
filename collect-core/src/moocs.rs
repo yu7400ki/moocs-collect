@@ -1,5 +1,6 @@
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
+use bytes::Bytes;
 use regex::Regex;
 use reqwest::Client;
 use scraper::Html;
@@ -404,16 +405,36 @@ impl SlideContent {
         Ok(svgs)
     }
 
-    pub async fn process(&self, client: &Client) -> anyhow::Result<Self> {
-        let default_options = Default::default();
-        let content = futures::future::join_all(
-            self.content
-                .iter()
-                .map(|svg| svg.process(&default_options, client)),
-        )
-        .await
-        .into_iter()
-        .collect::<anyhow::Result<Vec<_>>>()?;
+    pub async fn fetch_images(&self, client: &Client) -> anyhow::Result<HashMap<String, Bytes>> {
+        let futures = self.content.iter().map(|svg| svg.fetch_images(client));
+        let results = futures::future::join_all(futures).await;
+        let images = results.into_iter().collect::<anyhow::Result<Vec<_>>>()?;
+        let images = images
+            .into_iter()
+            .map(|image| image.into_iter())
+            .flatten()
+            .collect();
+        Ok(images)
+    }
+
+    pub fn embed_text(&self) -> anyhow::Result<Self> {
+        let content = self
+            .content
+            .iter()
+            .map(|svg| svg.embed_text())
+            .collect::<anyhow::Result<Vec<_>>>()?;
+        Ok(Self {
+            slide: Arc::clone(&self.slide),
+            content,
+        })
+    }
+
+    pub fn embed_images(&self, images: &HashMap<String, String>) -> anyhow::Result<Self> {
+        let content = self
+            .content
+            .iter()
+            .map(|svg| svg.embed_images(images))
+            .collect::<anyhow::Result<Vec<_>>>()?;
         Ok(Self {
             slide: Arc::clone(&self.slide),
             content,

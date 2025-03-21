@@ -792,6 +792,7 @@ name = "collect-cli"
 version = "0.3.1"
 dependencies = [
  "anyhow",
+ "base64 0.22.1",
  "clap",
  "collect-core",
  "dialoguer",
@@ -808,7 +809,6 @@ name = "collect-core"
 version = "0.2.1"
 dependencies = [
  "anyhow",
- "base64 0.22.1",
  "bitflags 2.9.0",
  "bytes",
  "futures",
