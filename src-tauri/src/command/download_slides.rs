@@ -86,42 +86,45 @@ async fn get_images(
     client: &Client,
 ) -> Result<HashMap<String, String>, ()> {
     let image_urls = content.extract_image_url();
-    let image_cache = ImageCache::from(app);
+    let image_cache = ImageCache::new(app);
     let mut futures = vec![];
     let mut images = HashMap::new();
     for url in image_urls {
-        let cache = image_cache.get(&url);
-        if cache.is_some() && fs::metadata(&cache.unwrap().path).is_ok() {
-            images.insert(url.clone(), cache.unwrap().path.clone());
-        } else {
-            let app_data = app
-                .path()
-                .app_cache_dir()
-                .expect("failed to get app cache dir");
-            futures.push(async move {
-                let bytes = fetch_image(&url, client).await.map_err(|_| ())?;
-                let hash = calculate_image_hash(&bytes);
-                let ext = guess_extension(&bytes);
-                let dir = app_data.join("images");
-                fs::create_dir_all(&dir).map_err(|_| ())?;
-                let path = dir
-                    .join(&format!("{}.{}", hash, ext))
-                    .to_string_lossy()
-                    .to_string();
-                fs::write(&path, &bytes).map_err(|_| ())?;
-                let mut image_cache = ImageCache::from(app);
-                image_cache.insert(
+        let cache = image_cache.get(&url).map_err(|_| ())?;
+        if let Some(entry) = &cache {
+            if fs::metadata(&entry.path).is_ok() {
+                images.insert(url.clone(), entry.path.clone());
+                continue;
+            }
+        }
+        let app_data = app
+            .path()
+            .app_cache_dir()
+            .expect("failed to get app cache dir");
+        futures.push(async move {
+            let bytes = fetch_image(&url, client).await.map_err(|_| ())?;
+            let hash = calculate_image_hash(&bytes);
+            let ext = guess_extension(&bytes);
+            let dir = app_data.join("images");
+            fs::create_dir_all(&dir).map_err(|_| ())?;
+            let path = dir
+                .join(&format!("{}.{}", hash, ext))
+                .to_string_lossy()
+                .to_string();
+            fs::write(&path, &bytes).map_err(|_| ())?;
+            let image_cache = ImageCache::new(app);
+            image_cache
+                .insert(
                     url.clone(),
                     ImageCacheEntry {
                         url: url.clone(),
                         path: path.clone(),
                         last_modified: chrono::Utc::now(),
                     },
-                );
-                image_cache.save(app).ok();
-                Ok((url, path))
-            });
-        }
+                )
+                .ok();
+            Ok((url, path))
+        });
     }
     let results = futures::future::join_all(futures).await;
     for result in results {

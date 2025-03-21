@@ -1,10 +1,12 @@
-use std::collections::HashMap;
+use std::sync::Mutex;
 
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_store::StoreExt;
+
+use crate::state::ConnectionState;
 
 const STORE_NAME: &str = "store.json";
 
@@ -68,59 +70,53 @@ impl TryFrom<Value> for Settings {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
 pub struct ImageCacheEntry {
     pub url: String,
     pub path: String,
     pub last_modified: DateTime<Utc>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
-pub struct ImageCache(HashMap<String, ImageCacheEntry>);
-
-impl ImageCache {
-    pub const KEY: &'static str = "image_cache";
-
-    pub fn new() -> Self {
-        Self(HashMap::new())
-    }
-
-    pub fn insert(&mut self, key: String, entry: ImageCacheEntry) -> Option<ImageCacheEntry> {
-        self.0.insert(key, entry)
-    }
-
-    pub fn get(&self, key: &str) -> Option<&ImageCacheEntry> {
-        self.0.get(key)
-    }
-
-    pub fn save(&self, app: &AppHandle) -> tauri_plugin_store::Result<()> {
-        let value: Value = self.clone().into();
-        let store = app.get_store(STORE_NAME).expect("failed to get store");
-        store.set(Self::KEY, value);
-        store.save()
-    }
+pub struct ImageCache<'a> {
+    db: &'a Mutex<ConnectionState>,
 }
 
-impl From<&AppHandle> for ImageCache {
-    fn from(app: &AppHandle) -> Self {
-        app.get_store(STORE_NAME)
-            .expect("failed to get store")
-            .get(Self::KEY)
-            .map(|value| value.try_into().unwrap_or_else(|_| Self::new()))
-            .unwrap_or_else(|| Self::new())
+impl<'a> ImageCache<'a> {
+    pub fn new(app: &'a AppHandle) -> Self {
+        let db = app.state::<Mutex<ConnectionState>>().inner();
+        Self { db }
     }
-}
 
-impl Into<Value> for ImageCache {
-    fn into(self) -> Value {
-        serde_json::to_value(self).expect("failed to convert ImageCache into Value")
+    pub fn insert(&self, key: String, entry: ImageCacheEntry) -> Result<(), rusqlite::Error> {
+        let timestamp = entry.last_modified.timestamp();
+        let mut guard = self.db.lock().expect("failed to lock db");
+        let db = &mut *guard;
+        let tx = db.0.transaction()?;
+        tx.execute(
+            "INSERT INTO image_cache (url, path, last_modified) VALUES (?1, ?2, ?3)
+             ON CONFLICT(url) DO UPDATE SET path = ?2, last_modified = ?3",
+            (&key, &entry.path, &timestamp),
+        )?;
+        tx.commit()?;
+        Ok(())
     }
-}
 
-impl TryFrom<Value> for ImageCache {
-    type Error = serde_json::Error;
-
-    fn try_from(value: Value) -> Result<Self, Self::Error> {
-        serde_json::from_value(value)
+    pub fn get(&self, key: &str) -> Result<Option<ImageCacheEntry>, rusqlite::Error> {
+        let guard = self.db.lock().expect("failed to lock db");
+        let db = &*guard;
+        let mut stmt =
+            db.0.prepare("SELECT path, last_modified FROM image_cache WHERE url = ?1")?;
+        let mut rows = stmt.query(&[key])?;
+        if let Some(row) = rows.next()? {
+            let path: String = row.get(0)?;
+            let timestamp: i64 = row.get(1)?;
+            let last_modified = Utc.timestamp_opt(timestamp, 0).single().unwrap();
+            Ok(Some(ImageCacheEntry {
+                url: key.to_string(),
+                path,
+                last_modified,
+            }))
+        } else {
+            Ok(None)
+        }
     }
 }
