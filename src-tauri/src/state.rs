@@ -1,4 +1,5 @@
 use collect::moocs::{Course, Lecture, LecturePage};
+use rusqlite::Connection;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -22,3 +23,5 @@ pub struct LectureState(pub HashMap<(u32, String, String), Arc<Lecture>>);
 
 #[derive(Default)]
 pub struct PageState(pub HashMap<(u32, String, String, String), Arc<LecturePage>>);
+
+pub struct ConnectionState(pub Connection);

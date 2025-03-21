@@ -1,7 +1,11 @@
+use db::initialize_db;
+use migrations::get_migrations;
 use std::sync::Mutex;
 use tauri::Manager;
 
 mod command;
+mod db;
+mod migrations;
 mod state;
 mod store;
 
@@ -33,6 +37,8 @@ pub fn run() {
                 .default(store::Settings::KEY, store::Settings::default(app.handle()))
                 .default(store::ImageCache::KEY, store::ImageCache::default())
                 .build()?;
+            let db = initialize_db(&app.handle(), "db.sqlite", &get_migrations())?;
+            app.manage(Mutex::new(state::ConnectionState(db)));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
