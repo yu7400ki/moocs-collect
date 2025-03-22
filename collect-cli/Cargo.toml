@@ -18,3 +18,5 @@ keyring = { version = "3.6.2", features = [
     "windows-native",
     "sync-secret-service",
 ] }
+base64 = "0.22.1"
+infer = "0.19"

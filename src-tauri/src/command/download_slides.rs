@@ -1,13 +1,19 @@
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
+use bytes::Bytes;
 use rayon::prelude::*;
+use reqwest::Client;
+use sha2::{Digest, Sha256};
+use std::collections::HashMap;
+use std::fs;
 use std::sync::Mutex;
 
 use crate::state::{ClientState, PageState};
+use crate::store::{ImageCache, ImageCacheEntry, Settings};
 use collect::{
     moocs::{self, Lecture, Slide, SlideContent},
     pdf,
 };
 use tauri::{Manager, State};
-use tauri_plugin_store::StoreExt;
 
 #[tauri::command]
 pub async fn download_slides(
@@ -30,8 +36,9 @@ pub async fn download_slides(
             .ok_or(())?
     };
 
-    let download_dir = get_download_dir(&app)?;
-    let lecture_dir = get_lecture_dir(&download_dir, &page.lecture);
+    let settings = Settings::from(&app);
+
+    let lecture_dir = get_lecture_dir(&settings.download_dir, &page.lecture);
 
     let slide = moocs::Slide::list(client, page).await.map_err(|_| ())?;
 
@@ -45,35 +52,106 @@ pub async fn download_slides(
     .collect::<Result<Vec<_>, _>>()
     .map_err(|_| ())?;
 
-    let contents =
-        futures::future::join_all(contents.iter().map(|content| content.process(client)))
+    let images =
+        futures::future::join_all(contents.iter().map(|content| get_images(content, &app)))
             .await
             .into_iter()
             .collect::<Result<Vec<_>, _>>()
-            .map_err(|_| ())?;
+            .map_err(|_| ())?
+            .into_iter()
+            .flatten()
+            .collect::<HashMap<_, _>>();
+
+    let contents = contents
+        .par_iter()
+        .map(|content| {
+            content
+                .embed_text()
+                .and_then(|content| content.embed_images(&images))
+                .map_err(|_| ())
+        })
+        .collect::<Result<Vec<_>, _>>()?;
 
     save_slides(&slide, &contents, &lecture_dir)?;
 
     Ok(())
 }
 
-fn get_download_dir(app: &tauri::AppHandle) -> Result<std::path::PathBuf, ()> {
-    let store = app.store("store.json").map_err(|_| ())?;
-    store
-        .get("settings")
-        .and_then(|settings| settings.get("downloadDir").cloned())
-        .and_then(|download_dir| download_dir.as_str().map(String::from))
-        .or_else(|| {
-            let document_dir = app.path().document_dir().ok()?;
-            Some(
-                document_dir
-                    .join("moocs-collect")
-                    .to_string_lossy()
-                    .to_string(),
-            )
-        })
-        .ok_or(())
-        .map(std::path::PathBuf::from)
+async fn get_images(
+    content: &SlideContent,
+    app: &tauri::AppHandle,
+) -> Result<HashMap<String, String>, String> {
+    let image_urls = content.extract_image_url();
+    let mut futures = vec![];
+    for url in image_urls {
+        let app = app.clone();
+        let future = async move {
+            let path = get_image_path(&url, &app).await?;
+            Ok((url, path))
+        };
+        futures.push(future);
+    }
+    let results = futures::future::join_all(futures)
+        .await
+        .into_iter()
+        .collect::<Result<Vec<(String, String)>, String>>()?;
+    Ok(results.into_iter().collect())
+}
+
+async fn get_image_path(url: &str, app: &tauri::AppHandle) -> Result<String, String> {
+    let image_cache = ImageCache::new(app);
+    let cache = image_cache
+        .get(url)
+        .map_err(|_| "failed to get image cache".to_string())?;
+    if let Some(entry) = &cache {
+        if fs::metadata(&entry.path).is_ok() {
+            return Ok(entry.path.clone());
+        }
+    }
+    let client_state = app.state::<ClientState>().inner();
+    let client = &client_state.0;
+    let bytes = fetch_image(url, client)
+        .await
+        .map_err(|_| "failed to fetch image".to_string())?;
+    let hash = calculate_image_hash(&bytes);
+    let ext = guess_extension(&bytes);
+    let app_data = app
+        .path()
+        .app_cache_dir()
+        .expect("failed to get app cache dir");
+    let dir = app_data.join("images");
+    fs::create_dir_all(&dir).expect("failed to create image cache dir");
+    let path = dir
+        .join(&format!("{}.{}", hash, ext))
+        .to_string_lossy()
+        .to_string();
+    fs::write(&path, &bytes).expect("failed to write image");
+    image_cache.insert(ImageCacheEntry::new(url, &path)).ok();
+    Ok(path)
+}
+
+fn calculate_image_hash(bytes: &[u8]) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(bytes);
+    let hash_result = hasher.finalize();
+    URL_SAFE_NO_PAD.encode(hash_result)
+}
+
+fn guess_extension(bytes: &[u8]) -> String {
+    let kind = infer::get(&bytes);
+    let ext = kind
+        .and_then(|kind| Some(kind.extension()))
+        .unwrap_or("svg");
+    let ext = match ext {
+        "xml" => "svg",
+        _ => ext,
+    };
+    ext.to_string()
+}
+
+async fn fetch_image(url: &str, client: &Client) -> Result<Bytes, ()> {
+    let response = client.get(url).send().await.map_err(|_| ())?;
+    Ok(response.bytes().await.map_err(|_| ())?)
 }
 
 fn sanitize_filename(filename: &str) -> String {

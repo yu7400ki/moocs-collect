@@ -6,6 +6,7 @@ use std::{
     time::Duration,
 };
 
+use base64::{engine::general_purpose, Engine};
 use clap::Parser;
 use collect::{
     iniad::{login_google, login_moocs, Credentials},
@@ -118,7 +119,7 @@ async fn save_slides_from_pages<P: AsRef<Path> + Sync>(
     let slide_contents = slide_contents
         .iter()
         .map(|slides| {
-            futures::future::join_all(slides.into_iter().map(|slide| slide.process(client)))
+            futures::future::join_all(slides.into_iter().map(|slide| process_slide(slide, client)))
         })
         .collect::<Vec<_>>();
     let slide_contents = futures::future::join_all(slide_contents)
@@ -130,6 +131,30 @@ async fn save_slides_from_pages<P: AsRef<Path> + Sync>(
         |(slides, contents)| -> Result<(), anyhow::Error> { save_slides(slides, contents, &path) },
     )?;
     Ok(())
+}
+
+async fn process_slide(slide: &SlideContent, client: &Client) -> anyhow::Result<SlideContent> {
+    let images = slide.fetch_images(client).await?;
+    let images = images
+        .into_iter()
+        .map(|(url, bytes)| (url, encode_base64(&bytes)))
+        .collect();
+    let slide = slide.embed_text()?.embed_images(&images)?;
+    Ok(slide)
+}
+
+pub fn encode_base64(bytes: &[u8]) -> String {
+    let kind = infer::get(&bytes);
+    let mime = kind
+        .and_then(|kind| Some(kind.mime_type()))
+        .unwrap_or("image/svg+xml");
+    let mime = match mime {
+        "text/xml" => "image/svg+xml",
+        _ => mime,
+    };
+    let base64 = general_purpose::STANDARD.encode(&bytes);
+    let base64 = format!("data:{};base64,{}", mime, base64);
+    base64
 }
 
 #[tokio::main]
@@ -274,10 +299,11 @@ async fn main() -> anyhow::Result<()> {
         .await
         .into_iter()
         .collect::<anyhow::Result<Vec<_>>>()?;
-    let content = futures::future::join_all(content.iter().map(|slide| slide.process(&client)))
-        .await
-        .into_iter()
-        .collect::<anyhow::Result<Vec<_>>>()?;
+    let content =
+        futures::future::join_all(content.iter().map(|slide| process_slide(slide, &client)))
+            .await
+            .into_iter()
+            .collect::<anyhow::Result<Vec<_>>>()?;
     save_slides(&slides, &content, &path)?;
 
     Ok(())
