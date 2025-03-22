@@ -24,9 +24,11 @@ pub fn initialize_db(
 
     let mut db = Connection::open(&conn)?;
 
-    let mut user_pragma = db.prepare("PRAGMA user_version")?;
-    let user_version = user_pragma.query_row([], |row| row.get::<_, u32>(0))?;
-    drop(user_pragma);
+    let user_version = {
+        let mut stmt = db.prepare("PRAGMA user_version")?;
+        let user_version = stmt.query_row([], |row| row.get::<_, u32>(0))?;
+        user_version
+    };
 
     upgrade_db(&mut db, migrations, user_version)?;
 

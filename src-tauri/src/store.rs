@@ -1,6 +1,7 @@
 use std::sync::Mutex;
 
 use chrono::prelude::*;
+use rusqlite::Transaction;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tauri::{AppHandle, Manager};
@@ -76,6 +77,16 @@ pub struct ImageCacheEntry {
     pub last_modified: DateTime<Utc>,
 }
 
+impl ImageCacheEntry {
+    pub fn new(url: impl ToString, path: impl ToString) -> Self {
+        Self {
+            url: url.to_string(),
+            path: path.to_string(),
+            last_modified: Utc::now(),
+        }
+    }
+}
+
 pub struct ImageCache<'a> {
     db: &'a Mutex<ConnectionState>,
 }
@@ -86,37 +97,50 @@ impl<'a> ImageCache<'a> {
         Self { db }
     }
 
-    pub fn insert(&self, key: String, entry: ImageCacheEntry) -> Result<(), rusqlite::Error> {
-        let timestamp = entry.last_modified.timestamp();
+    fn tx<T>(
+        &self,
+        f: impl FnOnce(&Transaction) -> Result<T, rusqlite::Error>,
+    ) -> Result<T, rusqlite::Error> {
         let mut guard = self.db.lock().expect("failed to lock db");
         let db = &mut *guard;
         let tx = db.0.transaction()?;
-        tx.execute(
-            "INSERT INTO image_cache (url, path, last_modified) VALUES (?1, ?2, ?3)
-             ON CONFLICT(url) DO UPDATE SET path = ?2, last_modified = ?3",
-            (&key, &entry.path, &timestamp),
-        )?;
-        tx.commit()?;
+        let result = f(&tx);
+        if result.is_ok() {
+            tx.commit()?;
+        } else {
+            tx.rollback()?;
+        }
+        result
+    }
+
+    pub fn insert(&self, entry: ImageCacheEntry) -> Result<(), rusqlite::Error> {
+        self.tx(|tx| {
+            tx.execute(
+                "INSERT INTO image_cache (url, path, last_modified) VALUES (?1, ?2, ?3)
+                ON CONFLICT(url) DO UPDATE SET path = ?2, last_modified = ?3",
+                (&entry.url, &entry.path, &entry.last_modified.timestamp()),
+            )
+        })?;
         Ok(())
     }
 
     pub fn get(&self, key: &str) -> Result<Option<ImageCacheEntry>, rusqlite::Error> {
-        let guard = self.db.lock().expect("failed to lock db");
-        let db = &*guard;
-        let mut stmt =
-            db.0.prepare("SELECT path, last_modified FROM image_cache WHERE url = ?1")?;
-        let mut rows = stmt.query(&[key])?;
-        if let Some(row) = rows.next()? {
-            let path: String = row.get(0)?;
-            let timestamp: i64 = row.get(1)?;
-            let last_modified = Utc.timestamp_opt(timestamp, 0).single().unwrap();
-            Ok(Some(ImageCacheEntry {
-                url: key.to_string(),
-                path,
-                last_modified,
-            }))
-        } else {
-            Ok(None)
-        }
+        self.tx(|tx| {
+            let mut stmt =
+                tx.prepare("SELECT path, last_modified FROM image_cache WHERE url = ?1")?;
+            let mut rows = stmt.query(&[key])?;
+            if let Some(row) = rows.next()? {
+                let path: String = row.get(0)?;
+                let timestamp: i64 = row.get(1)?;
+                let last_modified = Utc.timestamp_opt(timestamp, 0).single().unwrap();
+                Ok(Some(ImageCacheEntry {
+                    url: key.to_string(),
+                    path,
+                    last_modified,
+                }))
+            } else {
+                Ok(None)
+            }
+        })
     }
 }

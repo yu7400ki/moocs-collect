@@ -52,18 +52,15 @@ pub async fn download_slides(
     .collect::<Result<Vec<_>, _>>()
     .map_err(|_| ())?;
 
-    let images = futures::future::join_all(
-        contents
-            .iter()
-            .map(|content| get_images(content, &app, client)),
-    )
-    .await
-    .into_iter()
-    .collect::<Result<Vec<_>, _>>()
-    .map_err(|_| ())?
-    .into_iter()
-    .flatten()
-    .collect::<HashMap<_, _>>();
+    let images =
+        futures::future::join_all(contents.iter().map(|content| get_images(content, &app)))
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|_| ())?
+            .into_iter()
+            .flatten()
+            .collect::<HashMap<_, _>>();
 
     let contents = contents
         .par_iter()
@@ -83,55 +80,54 @@ pub async fn download_slides(
 async fn get_images(
     content: &SlideContent,
     app: &tauri::AppHandle,
-    client: &Client,
-) -> Result<HashMap<String, String>, ()> {
+) -> Result<HashMap<String, String>, String> {
     let image_urls = content.extract_image_url();
-    let image_cache = ImageCache::new(app);
     let mut futures = vec![];
-    let mut images = HashMap::new();
     for url in image_urls {
-        let cache = image_cache.get(&url).map_err(|_| ())?;
-        if let Some(entry) = &cache {
-            if fs::metadata(&entry.path).is_ok() {
-                images.insert(url.clone(), entry.path.clone());
-                continue;
-            }
-        }
-        let app_data = app
-            .path()
-            .app_cache_dir()
-            .expect("failed to get app cache dir");
-        futures.push(async move {
-            let bytes = fetch_image(&url, client).await.map_err(|_| ())?;
-            let hash = calculate_image_hash(&bytes);
-            let ext = guess_extension(&bytes);
-            let dir = app_data.join("images");
-            fs::create_dir_all(&dir).map_err(|_| ())?;
-            let path = dir
-                .join(&format!("{}.{}", hash, ext))
-                .to_string_lossy()
-                .to_string();
-            fs::write(&path, &bytes).map_err(|_| ())?;
-            let image_cache = ImageCache::new(app);
-            image_cache
-                .insert(
-                    url.clone(),
-                    ImageCacheEntry {
-                        url: url.clone(),
-                        path: path.clone(),
-                        last_modified: chrono::Utc::now(),
-                    },
-                )
-                .ok();
+        let app = app.clone();
+        let future = async move {
+            let path = get_image_path(&url, &app).await?;
             Ok((url, path))
-        });
+        };
+        futures.push(future);
     }
-    let results = futures::future::join_all(futures).await;
-    for result in results {
-        let (url, path) = result?;
-        images.insert(url, path);
+    let results = futures::future::join_all(futures)
+        .await
+        .into_iter()
+        .collect::<Result<Vec<(String, String)>, String>>()?;
+    Ok(results.into_iter().collect())
+}
+
+async fn get_image_path(url: &str, app: &tauri::AppHandle) -> Result<String, String> {
+    let image_cache = ImageCache::new(app);
+    let cache = image_cache
+        .get(url)
+        .map_err(|_| "failed to get image cache".to_string())?;
+    if let Some(entry) = &cache {
+        if fs::metadata(&entry.path).is_ok() {
+            return Ok(entry.path.clone());
+        }
     }
-    Ok(images)
+    let client_state = app.state::<ClientState>().inner();
+    let client = &client_state.0;
+    let bytes = fetch_image(url, client)
+        .await
+        .map_err(|_| "failed to fetch image".to_string())?;
+    let hash = calculate_image_hash(&bytes);
+    let ext = guess_extension(&bytes);
+    let app_data = app
+        .path()
+        .app_cache_dir()
+        .expect("failed to get app cache dir");
+    let dir = app_data.join("images");
+    fs::create_dir_all(&dir).expect("failed to create image cache dir");
+    let path = dir
+        .join(&format!("{}.{}", hash, ext))
+        .to_string_lossy()
+        .to_string();
+    fs::write(&path, &bytes).expect("failed to write image");
+    image_cache.insert(ImageCacheEntry::new(url, &path)).ok();
+    Ok(path)
 }
 
 fn calculate_image_hash(bytes: &[u8]) -> String {
