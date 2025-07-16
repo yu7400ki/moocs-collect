@@ -345,7 +345,7 @@ impl Slide {
     pub fn scrape_page(html: &str) -> Vec<String> {
         let document = Html::parse_document(html);
         let gslide_regex =
-            Regex::new(r#"^https://docs.google.com/presentation/d/.*?/embed\?"#).unwrap();
+            Regex::new(r#"^https://docs.google.com/presentation/d/.*?/(embed|pubembed)\?"#).unwrap();
         let slides = document
             .select(&scraper::Selector::parse("iframe").unwrap())
             .filter_map(|iframe| iframe.value().attr("src"))
