@@ -1,4 +1,3 @@
-import { getSettings as getSettingsCommand } from "@/command/get-settings";
 import { getStore } from "@/utils/store";
 import * as path from "@tauri-apps/api/path";
 import { type Settings, settingsSchema } from "../schemas/settings";
@@ -15,12 +14,12 @@ async function getDefaultSettings(): Promise<Settings> {
 }
 
 export async function getSettings() {
-  const settings = await getSettingsCommand();
+  const store = await getStore();
+  const settings = await store.get<Settings>(key);
   const result = settingsSchema.safeParse(settings);
   if (result.success) {
     return result.data;
   }
-  const store = await getStore();
   const defaultSettings = await getDefaultSettings();
   await store.set(key, defaultSettings);
   return defaultSettings;
