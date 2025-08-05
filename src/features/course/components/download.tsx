@@ -1,12 +1,12 @@
 import { store } from "@/components/providers/jotai";
 import { Button } from "@/components/ui/button";
 import { type DownloadItem, queueAtom } from "@/features/download/atoms/queue";
-import { getSettings } from "@/features/settings/services/settings";
 import type { MaybePromise } from "@/utils/types";
 import { DownloadIcon } from "lucide-react";
 import { useCallback } from "react";
 import { useTransition } from "react";
 import { type Node, courseTreeAtom } from "../atoms/check";
+import { yearAtom } from "../atoms/year";
 import { getCourses } from "../services/courses";
 import { getAllLectures } from "../services/lectures";
 import { getPages } from "../services/pages";
@@ -51,8 +51,8 @@ function enqueuePages(items: DownloadItem[]) {
 }
 
 async function retrievePages(node: Node) {
-  const settings = await getSettings();
-  const courses = await delayedPromise(getCourses(settings));
+  const year = store.get(yearAtom);
+  const courses = await delayedPromise(getCourses({ year }));
   const coursePairs = getCheckedPairs(node.children, courses);
 
   for (const [course, courseNode] of coursePairs) {

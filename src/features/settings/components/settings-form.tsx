@@ -1,4 +1,3 @@
-import { NumberInput } from "@/components/ui/number-input";
 import { useAtom } from "jotai";
 import { useCallback } from "react";
 import { css } from "styled-system/css";
@@ -48,26 +47,6 @@ export function SettingsForm() {
           name="downloadDir"
           value={settings?.downloadDir}
           onChange={handleChange("downloadDir")}
-        />
-      </div>
-      <Divider />
-      <div className={css({ display: "grid", gap: 1.5 })}>
-        <p>アーカイブ年度</p>
-        <span
-          className={css({
-            fontSize: "sm",
-            color: "fg.muted",
-          })}
-        >
-          未入力、無効な入力は最新の年度として扱われます。
-        </span>
-        <NumberInput
-          name="year"
-          value={String(settings?.year ?? "")}
-          onValueChange={({ value }) => handleChange("year")(value)}
-          max={new Date().getFullYear()}
-          height="9"
-          maxW="40"
         />
       </div>
     </form>

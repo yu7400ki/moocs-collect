@@ -119,4 +119,34 @@ impl CourseRepository for CourseRepositoryImpl {
             .await?;
         Ok(courses.into_iter().find(|course| course.key == *course_key))
     }
+
+    async fn fetch_archive_years(&self) -> Result<Vec<Year>> {
+        let html = self.fetch_course_page(None).await?;
+        let document = Html::parse_document(&html);
+
+        let treeview_selector = parse_selector(".treeview")?;
+        let year_link_selector = parse_selector(".treeview-menu li a")?;
+
+        let mut years = Vec::new();
+
+        if let Some(treeview) = document.select(&treeview_selector).next() {
+            for element in treeview.select(&year_link_selector) {
+                if let Some(href) = element.value().attr("href") {
+                    // Extract year from href like "/courses/2024"
+                    if let Some(year_str) = href.strip_prefix("/courses/") {
+                        if let Ok(year) = year_str.parse::<u32>() {
+                            if let Ok(year) = Year::new(year) {
+                                years.push(year);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        years.sort_by(|a, b| b.value().cmp(&a.value()));
+        years.dedup();
+
+        Ok(years)
+    }
 }

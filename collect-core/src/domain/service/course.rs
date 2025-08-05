@@ -10,4 +10,7 @@ pub trait CourseService: Send + Sync {
 
     /// Get a specific course by its key
     async fn get_course(&self, course_key: &CourseKey) -> Result<Course>;
+
+    /// Get list of available archive years
+    async fn get_archive_years(&self) -> Result<Vec<Year>>;
 }

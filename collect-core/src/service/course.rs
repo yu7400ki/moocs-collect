@@ -47,4 +47,15 @@ impl CourseService for CourseServiceImpl {
                 crate::error::CollectError::not_found(format!("Course not found: {}", course_key))
             })
     }
+
+    async fn get_archive_years(&self) -> Result<Vec<Year>> {
+        // Check authentication before fetching archive years
+        if !self.auth_repository.is_logged_in_moocs().await? {
+            return Err(crate::error::CollectError::authentication(
+                "Not logged into MOOCs system. Please authenticate first.",
+            ));
+        }
+
+        self.course_repository.fetch_archive_years().await
+    }
 }

@@ -1,9 +1,9 @@
-import { yearAtom } from "@/features/settings/atoms/year";
 import { unwrapPromise } from "@/utils/atom";
 import { atom } from "jotai";
 import { derive } from "jotai-derive";
 import type { Course } from "../schemas/course";
 import { getCourses } from "../services/courses";
+import { yearAtom } from "./year";
 
 const internalCoursesAtom = atom((get) => {
   const year = get(yearAtom);

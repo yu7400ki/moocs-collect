@@ -34,6 +34,7 @@ pub fn run() {
             command::get_credential::get_credential,
             command::get_lectures::get_lectures,
             command::get_pages::get_pages,
+            command::get_archive_years::get_archive_years,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

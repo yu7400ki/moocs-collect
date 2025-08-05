@@ -99,6 +99,10 @@ impl Collect {
         self.course_service.get_courses(year).await
     }
 
+    pub async fn get_archive_years(&self) -> Result<Vec<Year>> {
+        self.course_service.get_archive_years().await
+    }
+
     // Lecture operations
     pub async fn get_lecture_groups(&self, course_key: &CourseKey) -> Result<Vec<LectureGroup>> {
         self.lecture_service.get_lecture_groups(course_key).await

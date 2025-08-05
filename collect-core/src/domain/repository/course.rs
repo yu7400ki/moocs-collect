@@ -9,4 +9,7 @@ pub trait CourseRepository: Send + Sync {
 
     /// Fetch course details by key
     async fn fetch_course(&self, course_key: &CourseKey) -> Result<Option<Course>>;
+
+    /// Fetch list of available archive years
+    async fn fetch_archive_years(&self) -> Result<Vec<Year>>;
 }
