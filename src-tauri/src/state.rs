@@ -1,24 +1,22 @@
-use collect::moocs::{Course, Lecture, LecturePage};
-use std::collections::HashMap;
+use collect::Collect;
+use reqwest::Client;
 use std::sync::Arc;
 
-pub struct ClientState(pub reqwest::Client);
+pub struct CollectState {
+    pub collect: Arc<Collect>,
+    pub client: Arc<Client>,
+}
 
-impl ClientState {
+impl CollectState {
     pub fn new() -> reqwest::Result<Self> {
-        let client = reqwest::Client::builder()
+        let client = Client::builder()
         .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0")
         .cookie_store(true)
         .build()?;
-        Ok(Self(client))
+        let client = Arc::new(client);
+        Ok(Self {
+            collect: Arc::new(Collect::new(client.as_ref().clone())),
+            client,
+        })
     }
 }
-
-#[derive(Default)]
-pub struct CourseState(pub HashMap<(u32, String), Arc<Course>>);
-
-#[derive(Default)]
-pub struct LectureState(pub HashMap<(u32, String, String), Arc<Lecture>>);
-
-#[derive(Default)]
-pub struct PageState(pub HashMap<(u32, String, String, String), Arc<LecturePage>>);

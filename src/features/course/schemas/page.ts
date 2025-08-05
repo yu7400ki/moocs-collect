@@ -1,14 +1,15 @@
 import { z } from "zod";
-import { lectureSchema } from "./lecture";
 
 export const pageSchema = z.object({
-  id: z.string().brand("PageId"),
-  title: z.string(),
-  lecture: lectureSchema,
+  year: z.number(),
+  courseSlug: z.string().brand("CourseSlug"),
+  lectureSlug: z.string().brand("LectureSlug"),
+  slug: z.string().brand("PageSlug"),
+  name: z.string(),
 });
 
-export function castPageId(id: string): z.infer<typeof pageSchema>["id"] {
-  return id as z.infer<typeof pageSchema>["id"];
+export function castPageSlug(slug: string): z.infer<typeof pageSchema>["slug"] {
+  return slug as z.infer<typeof pageSchema>["slug"];
 }
 
 export type Page = z.infer<typeof pageSchema>;

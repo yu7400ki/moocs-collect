@@ -1,26 +1,67 @@
-use std::sync::{Arc, Mutex};
-
-use crate::state::{ClientState, CourseState, LectureState};
-use collect::moocs;
+use crate::state::CollectState;
+use collect::{
+    domain::models::{CourseKey, CourseSlug, LectureGroup as DomainLectureGroup, Year},
+    error::CollectError,
+};
 use tauri::State;
 
-#[derive(serde::Serialize)]
-pub struct Lecture {
-    pub year: u32,
-    pub course_id: String,
-    pub id: String,
-    pub name: String,
-    pub group: String,
+#[derive(Debug, thiserror::Error)]
+pub enum LectureError {
+    #[error("Invalid input: {0}")]
+    InvalidInput(String),
+    #[error("Core library error: {0}")]
+    Core(#[from] CollectError),
 }
 
-impl<'a> From<moocs::Lecture> for Lecture {
-    fn from(lecture: moocs::Lecture) -> Self {
+impl serde::Serialize for LectureError {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Lecture {
+    pub year: u32,
+    pub course_slug: String,
+    pub slug: String,
+    pub name: String,
+    pub index: usize,
+}
+
+#[derive(serde::Serialize)]
+pub struct LectureGroup {
+    pub year: u32,
+    #[serde(rename = "courseSlug")]
+    pub course_slug: String,
+    pub name: String,
+    pub lectures: Vec<Lecture>,
+    pub index: usize,
+}
+
+impl From<&collect::domain::models::Lecture> for Lecture {
+    fn from(lecture: &collect::domain::models::Lecture) -> Self {
         Self {
-            year: lecture.course.year,
-            course_id: lecture.course.id.clone(),
-            id: lecture.id,
-            name: lecture.name,
-            group: lecture.group,
+            year: lecture.key.course_key.year.value(),
+            course_slug: lecture.key.course_key.slug.value().to_string(),
+            slug: lecture.key.slug.value().to_string(),
+            name: lecture.display_name().to_string(),
+            index: lecture.index,
+        }
+    }
+}
+
+impl From<&DomainLectureGroup> for LectureGroup {
+    fn from(group: &DomainLectureGroup) -> Self {
+        Self {
+            year: group.course_key.year.value(),
+            course_slug: group.course_key.slug.value().to_string(),
+            name: group.display_name().to_string(),
+            lectures: group.lectures.iter().map(Lecture::from).collect(),
+            index: group.index,
         }
     }
 }
@@ -28,33 +69,19 @@ impl<'a> From<moocs::Lecture> for Lecture {
 #[tauri::command]
 pub async fn get_lectures(
     year: u32,
-    course_id: String,
-    client_state: State<'_, ClientState>,
-    course_state: State<'_, Mutex<CourseState>>,
-    lecture_state: State<'_, Mutex<LectureState>>,
-) -> Result<Vec<Lecture>, ()> {
-    let client = &client_state.0;
-    let course = {
-        let course_state_guard = course_state.lock().map_err(|_| ())?;
-        let course_state = &*course_state_guard;
-        course_state
-            .0
-            .get(&(year, course_id.clone()))
-            .cloned()
-            .ok_or(())?
-    };
-    let lectures = moocs::Lecture::list(client, course).await.map_err(|_| ())?;
+    course_slug: String,
+    state: State<'_, CollectState>,
+) -> Result<Vec<LectureGroup>, LectureError> {
+    let collect = &state.collect;
 
-    {
-        let mut lecture_state_guard = lecture_state.lock().map_err(|_| ())?;
-        let lecture_state = &mut *lecture_state_guard;
-        for lecture in &lectures {
-            lecture_state.0.insert(
-                (year, course_id.clone(), lecture.id.clone()),
-                Arc::new(lecture.clone()),
-            );
-        }
-    }
+    let year_obj = Year::new(year)
+        .map_err(|e| LectureError::InvalidInput(format!("Invalid year {}: {}", year, e)))?;
+    let course_slug_obj = CourseSlug::new(course_slug.clone()).map_err(|e| {
+        LectureError::InvalidInput(format!("Invalid course slug '{}': {}", course_slug, e))
+    })?;
+    let course_key = CourseKey::new(year_obj, course_slug_obj);
 
-    Ok(lectures.into_iter().map(Lecture::from).collect())
+    let lecture_groups = collect.get_lecture_groups(&course_key).await?;
+
+    Ok(lecture_groups.iter().map(LectureGroup::from).collect())
 }

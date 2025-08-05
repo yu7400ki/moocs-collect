@@ -13,7 +13,7 @@ const internalCoursesAtom = atom((get) => {
 export const coursesAtom = unwrapPromise(internalCoursesAtom);
 
 export const courseMapAtom = derive([coursesAtom], (courses) => {
-  return new Map(courses.map((course) => [course.id, course]));
+  return new Map(courses.map((course) => [course.slug, course]));
 });
 
 const internalCourseSelectAtom = atom<Map<number | undefined, Course | null>>(
@@ -29,7 +29,7 @@ export const courseSelectAtom = atom(
   async (get, set, course: Course | null) => {
     const courseMap = await get(courseMapAtom);
     const year = get(yearAtom);
-    if (!course || courseMap.has(course.id)) {
+    if (!course || courseMap.has(course.slug)) {
       set(internalCourseSelectAtom, (old) => {
         const map = new Map(old);
         map.set(year, course);
@@ -39,11 +39,11 @@ export const courseSelectAtom = atom(
   },
 );
 
-export const courseSelectIdAtom = atom(
-  (get) => get(courseSelectAtom)?.id ?? null,
-  async (get, set, id: Course["id"] | null) => {
+export const courseSelectSlugAtom = atom(
+  (get) => get(courseSelectAtom)?.slug ?? null,
+  async (get, set, slug: Course["slug"] | null) => {
     const map = await get(courseMapAtom);
-    const course = id ? map.get(id) : null;
+    const course = slug ? map.get(slug) : null;
     set(courseSelectAtom, course ?? null);
   },
 );

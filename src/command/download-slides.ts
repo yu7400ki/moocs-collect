@@ -2,9 +2,9 @@ import { createCommand } from "./utils";
 
 export type Args = {
   year: number;
-  courseId: string;
-  lectureId: string;
-  pageId: string;
+  courseSlug: string;
+  lectureSlug: string;
+  pageSlug: string;
 };
 
 export type Output = undefined;

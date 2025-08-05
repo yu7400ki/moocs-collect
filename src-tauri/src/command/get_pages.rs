@@ -1,26 +1,47 @@
-use std::sync::{Arc, Mutex};
-
-use crate::state::{ClientState, LectureState, PageState};
-use collect::moocs;
+use crate::state::CollectState;
+use collect::{
+    domain::models::{
+        CourseKey, CourseSlug, LectureKey, LecturePage as DomainPage, LectureSlug, Year,
+    },
+    error::CollectError,
+};
 use tauri::State;
 
-#[derive(serde::Serialize)]
-pub struct Page {
-    pub year: u32,
-    pub course_id: String,
-    pub lecture_id: String,
-    pub id: String,
-    pub title: String,
+#[derive(Debug, thiserror::Error)]
+pub enum PageError {
+    #[error("Invalid input: {0}")]
+    InvalidInput(String),
+    #[error("Core library error: {0}")]
+    Core(#[from] CollectError),
 }
 
-impl From<moocs::LecturePage> for Page {
-    fn from(page: moocs::LecturePage) -> Self {
+impl serde::Serialize for PageError {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Page {
+    pub year: u32,
+    pub course_slug: String,
+    pub lecture_slug: String,
+    pub slug: String,
+    pub name: String,
+}
+
+impl From<DomainPage> for Page {
+    fn from(page: DomainPage) -> Self {
         Self {
-            year: page.lecture.course.year,
-            course_id: page.lecture.course.id.clone(),
-            lecture_id: page.lecture.id.clone(),
-            id: page.id,
-            title: page.title,
+            year: page.key.lecture_key.course_key.year.value(),
+            course_slug: page.key.lecture_key.course_key.slug.value().to_string(),
+            lecture_slug: page.key.lecture_key.slug.value().to_string(),
+            slug: page.key.slug.value().to_string(),
+            name: page.display_name().to_string(),
         }
     }
 }
@@ -28,36 +49,25 @@ impl From<moocs::LecturePage> for Page {
 #[tauri::command]
 pub async fn get_pages(
     year: u32,
-    course_id: String,
-    lecture_id: String,
-    client_state: State<'_, ClientState>,
-    lecture_state: State<'_, Mutex<LectureState>>,
-    page_state: State<'_, Mutex<PageState>>,
-) -> Result<Vec<Page>, ()> {
-    let client = &client_state.0;
-    let lecture = {
-        let lecture_state_guard = lecture_state.lock().map_err(|_| ())?;
-        let lecture_state = &*lecture_state_guard;
-        lecture_state
-            .0
-            .get(&(year, course_id.clone(), lecture_id.clone()))
-            .cloned()
-            .ok_or(())?
-    };
-    let pages = moocs::LecturePage::list(client, lecture)
-        .await
-        .map_err(|_| ())?;
+    course_slug: String,
+    lecture_slug: String,
+    state: State<'_, CollectState>,
+) -> Result<Vec<Page>, PageError> {
+    let collect = &state.collect;
 
-    {
-        let mut page_state_guard = page_state.lock().map_err(|_| ())?;
-        let page_state = &mut *page_state_guard;
-        for page in &pages {
-            page_state.0.insert(
-                (year, course_id.clone(), lecture_id.clone(), page.id.clone()),
-                Arc::new(page.clone()),
-            );
-        }
-    }
+    let year_obj = Year::new(year)
+        .map_err(|e| PageError::InvalidInput(format!("Invalid year {}: {}", year, e)))?;
+    let course_slug_obj = CourseSlug::new(course_slug.clone()).map_err(|e| {
+        PageError::InvalidInput(format!("Invalid course slug '{}': {}", course_slug, e))
+    })?;
+    let lecture_slug_obj = LectureSlug::new(lecture_slug.clone()).map_err(|e| {
+        PageError::InvalidInput(format!("Invalid lecture slug '{}': {}", lecture_slug, e))
+    })?;
+
+    let course_key = CourseKey::new(year_obj, course_slug_obj);
+    let lecture_key = LectureKey::new(course_key, lecture_slug_obj);
+
+    let pages = collect.get_pages(&lecture_key).await?;
 
     Ok(pages.into_iter().map(Page::from).collect())
 }

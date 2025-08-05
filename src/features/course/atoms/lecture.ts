@@ -3,19 +3,27 @@ import { atom } from "jotai";
 import { derive } from "jotai-derive";
 import type { Lecture } from "../schemas/lecture";
 import { uniqueKey } from "../services/courses";
-import { getLectures } from "../services/lectures";
+import { getAllLectures, getLectureGroups } from "../services/lectures";
 import { courseSelectAtom } from "./course";
 
+export const internalLectureGroupsAtom = atom((get) => {
+  const course = get(courseSelectAtom);
+  return course ? getLectureGroups(course) : null;
+});
+
+export const lectureGroupsAtom = unwrapPromise(internalLectureGroupsAtom);
+
+// 後方互換性のために、全てのlectureを平坦化したatom
 export const internalLecturesAtom = atom((get) => {
   const course = get(courseSelectAtom);
-  return course ? getLectures(course) : null;
+  return course ? getAllLectures(course) : null;
 });
 
 export const lecturesAtom = unwrapPromise(internalLecturesAtom);
 
 export const lectureMapAtom = derive([lecturesAtom], (lectures) => {
   return lectures
-    ? new Map(lectures.map((lecture) => [lecture.id, lecture]))
+    ? new Map(lectures.map((lecture) => [lecture.slug, lecture]))
     : null;
 });
 
@@ -30,7 +38,7 @@ export const lectureSelectAtom = atom(
   async (get, set, lecture: Lecture | null) => {
     const lectureMap = await get(lectureMapAtom);
     const course = get(courseSelectAtom);
-    if (course && (!lecture || lectureMap?.has(lecture.id))) {
+    if (course && (!lecture || lectureMap?.has(lecture.slug))) {
       set(internalLectureSelectAtom, (old) => {
         const map = new Map(old);
         map.set(uniqueKey(course), lecture);
@@ -40,11 +48,11 @@ export const lectureSelectAtom = atom(
   },
 );
 
-export const lectureSelectIdAtom = atom(
-  (get) => get(lectureSelectAtom)?.id ?? null,
-  async (get, set, id: Lecture["id"] | null) => {
+export const lectureSelectSlugAtom = atom(
+  (get) => get(lectureSelectAtom)?.slug ?? null,
+  async (get, set, slug: Lecture["slug"] | null) => {
     const map = await get(lectureMapAtom);
-    const lecture = id ? map?.get(id) : null;
+    const lecture = slug ? map?.get(slug) : null;
     set(lectureSelectAtom, lecture ?? null);
   },
 );

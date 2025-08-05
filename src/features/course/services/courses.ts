@@ -3,7 +3,7 @@ import { memoizeAsync } from "@/utils/cache";
 import { type Course, courseSchema } from "../schemas/course";
 
 export function uniqueKey(course: Course) {
-  return `${course.year}-${course.id}`;
+  return `${course.year}-${course.slug}`;
 }
 
 async function _getCourses(args: { year?: number } = {}) {

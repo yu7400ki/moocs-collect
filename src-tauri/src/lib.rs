@@ -1,4 +1,3 @@
-use std::sync::Mutex;
 use tauri::Manager;
 
 mod command;
@@ -24,10 +23,7 @@ pub fn run() {
                         .build(),
                 )?;
             }
-            app.manage(state::ClientState::new()?);
-            app.manage(Mutex::new(state::CourseState::default()));
-            app.manage(Mutex::new(state::LectureState::default()));
-            app.manage(Mutex::new(state::PageState::default()));
+            app.manage(state::CollectState::new()?);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

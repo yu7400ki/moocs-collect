@@ -3,9 +3,9 @@ import type { Page } from "@/features/course/schemas/page";
 
 export async function downloadSlides(page: Page) {
   await downloadSlidesCommand({
-    year: page.lecture.course.year,
-    courseId: page.lecture.course.id,
-    lectureId: page.lecture.id,
-    pageId: page.id,
+    year: page.year,
+    courseSlug: page.courseSlug,
+    lectureSlug: page.lectureSlug,
+    pageSlug: page.slug,
   });
 }

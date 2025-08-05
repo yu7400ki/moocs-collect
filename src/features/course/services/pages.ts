@@ -5,21 +5,16 @@ import { type Page, pageSchema } from "../schemas/page";
 import { uniqueKey as lectureUniqueKey } from "./lectures";
 
 export function uniqueKey(page: Page) {
-  return `${page.lecture.course.year}-${page.lecture.course.id}-${page.lecture.id}-${page.id}`;
+  return `${page.year}-${page.courseSlug}-${page.lectureSlug}-${page.slug}`;
 }
 
 async function _getPages(lecture: Lecture) {
   const pages = await getPagesCommand({
-    year: lecture.course.year,
-    courseId: lecture.course.id,
-    lectureId: lecture.id,
+    year: lecture.year,
+    courseSlug: lecture.courseSlug,
+    lectureSlug: lecture.slug,
   });
-  return pages.map((page) =>
-    pageSchema.parse({
-      ...page,
-      lecture: lecture,
-    }),
-  );
+  return pages.map((page) => pageSchema.parse(page));
 }
 
 export const getPages = memoizeAsync(_getPages, {

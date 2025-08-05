@@ -18,6 +18,7 @@ collect = { package = "collect-core", path = "../collect-core" }
 reqwest = { workspace = true }
 futures = { workspace = true }
 rayon = { workspace = true }
+thiserror = { workspace = true }
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 log = "0.4"

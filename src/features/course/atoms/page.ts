@@ -14,7 +14,7 @@ const internalPagesAtom = atom((get) => {
 export const pagesAtom = unwrapPromise(internalPagesAtom);
 
 export const pageMapAtom = derive([pagesAtom], (pages) => {
-  return pages ? new Map(pages.map((page) => [page.id, page])) : null;
+  return pages ? new Map(pages.map((page) => [page.slug, page])) : null;
 });
 
 const internalPageSelectAtom = atom<Map<string, Page | null>>(new Map());
@@ -28,7 +28,7 @@ export const pageSelectAtom = atom(
   async (get, set, page: Page | null) => {
     const pageMap = await get(pageMapAtom);
     const lecture = get(lectureSelectAtom);
-    if (lecture && (!page || pageMap?.has(page.id))) {
+    if (lecture && (!page || pageMap?.has(page.slug))) {
       set(internalPageSelectAtom, (old) => {
         const map = new Map(old);
         map.set(uniqueKey(lecture), page);
@@ -38,11 +38,11 @@ export const pageSelectAtom = atom(
   },
 );
 
-export const pageSelectIdAtom = atom(
-  (get) => get(pageSelectAtom)?.id ?? null,
-  async (get, set, id: Page["id"] | null) => {
+export const pageSelectSlugAtom = atom(
+  (get) => get(pageSelectAtom)?.slug ?? null,
+  async (get, set, slug: Page["slug"] | null) => {
     const map = await get(pageMapAtom);
-    const page = id ? map?.get(id) : null;
+    const page = slug ? map?.get(slug) : null;
     set(pageSelectAtom, page ?? null);
   },
 );

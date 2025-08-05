@@ -6,7 +6,7 @@ export type Args = {
 
 export type Output = {
   year: number;
-  id: string;
+  slug: string;
   name: string;
 }[];
 

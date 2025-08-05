@@ -2,16 +2,16 @@ import { createCommand } from "./utils";
 
 export type Args = {
   year: number;
-  courseId: string;
-  lectureId: string;
+  courseSlug: string;
+  lectureSlug: string;
 };
 
 export type Output = {
   year: number;
-  courseId: string;
-  lectureId: string;
-  id: string;
-  title: string;
+  courseSlug: string;
+  lectureSlug: string;
+  slug: string;
+  name: string;
 }[];
 
 export const getPages = createCommand<Args, Output>("get_pages");

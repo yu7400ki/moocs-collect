@@ -1,15 +1,14 @@
 import { store } from "@/components/providers/jotai";
 import { Button } from "@/components/ui/button";
-import { queueAtom } from "@/features/download/atoms/queue";
+import { type DownloadItem, queueAtom } from "@/features/download/atoms/queue";
 import { getSettings } from "@/features/settings/services/settings";
 import type { MaybePromise } from "@/utils/types";
 import { DownloadIcon } from "lucide-react";
 import { useCallback } from "react";
 import { useTransition } from "react";
 import { type Node, courseTreeAtom } from "../atoms/check";
-import type { Page } from "../schemas/page";
 import { getCourses } from "../services/courses";
-import { getLectures } from "../services/lectures";
+import { getAllLectures } from "../services/lectures";
 import { getPages } from "../services/pages";
 
 async function delayedPromise<T>(value: MaybePromise<T>, ms = 1000) {
@@ -19,9 +18,9 @@ async function delayedPromise<T>(value: MaybePromise<T>, ms = 1000) {
   return await value;
 }
 
-function intoNode<T extends { id: string }>(data: T): Node {
+function intoNode<T extends { slug: string }>(data: T): Node {
   return {
-    id: data.id,
+    id: data.slug,
     checked: true,
   };
 }
@@ -30,7 +29,7 @@ function nonNullable<T>(v: T): v is NonNullable<T> {
   return v !== null && v !== undefined;
 }
 
-function getCheckedPairs<T extends { id: string }>(
+function getCheckedPairs<T extends { slug: string }>(
   nodes: Node[] | undefined,
   items: T[],
   defaultMap: (item: T) => Node = intoNode,
@@ -39,15 +38,15 @@ function getCheckedPairs<T extends { id: string }>(
   return nodeList
     .filter((node) => node.checked)
     .map((node) => {
-      const item = items.find((item) => item.id === node.id);
+      const item = items.find((item) => item.slug === node.id);
       return item ? ([item, node] as [T, Node]) : null;
     })
     .filter(nonNullable);
 }
 
-function enqueuePages(pages: Page[]) {
-  for (const page of pages) {
-    store.set(queueAtom, page);
+function enqueuePages(items: DownloadItem[]) {
+  for (const item of items) {
+    store.set(queueAtom, item);
   }
 }
 
@@ -57,13 +56,19 @@ async function retrievePages(node: Node) {
   const coursePairs = getCheckedPairs(node.children, courses);
 
   for (const [course, courseNode] of coursePairs) {
-    const lectures = await delayedPromise(getLectures(course));
+    const lectures = await delayedPromise(getAllLectures(course));
     const lecturePairs = getCheckedPairs(courseNode.children, lectures);
 
     for (const [lecture, lectureNode] of lecturePairs) {
       const pages = await delayedPromise(getPages(lecture));
       const pagePairs = getCheckedPairs(lectureNode.children, pages);
-      enqueuePages(pagePairs.map(([page]) => page));
+      enqueuePages(
+        pagePairs.map(([page]) => ({
+          ...page,
+          course,
+          lecture,
+        })),
+      );
     }
   }
 }

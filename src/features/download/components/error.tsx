@@ -15,8 +15,8 @@ export function Errors() {
   return (
     <div>
       <div className={css({ display: "grid" })}>
-        {[...error].reverse().map((page) => (
-          <ListItem key={uniqueKey(page)} page={page} status="error" />
+        {[...error].reverse().map((item) => (
+          <ListItem key={uniqueKey(item)} item={item} status="error" />
         ))}
       </div>
     </div>

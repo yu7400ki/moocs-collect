@@ -1,26 +1,34 @@
 import { getLectures as getLecturesCommand } from "@/command/get-lectures";
 import { memoizeAsync } from "@/utils/cache";
 import type { Course } from "../schemas/course";
-import { type Lecture, lectureSchema } from "../schemas/lecture";
+import {
+  type Lecture,
+  type LectureGroup,
+  lectureGroupSchema,
+} from "../schemas/lecture";
 import { uniqueKey as courseUniqueKey } from "./courses";
 
 export function uniqueKey(lecture: Lecture) {
-  return `${lecture.course.year}-${lecture.course.id}-${lecture.id}`;
+  return `${lecture.year}-${lecture.courseSlug}-${lecture.slug}`;
 }
 
-async function _getLectures(course: Course) {
-  const lectures = await getLecturesCommand({
+export function lectureGroupUniqueKey(group: LectureGroup) {
+  return `${group.year}-${group.courseSlug}-${group.name}`;
+}
+
+async function _getLectureGroups(course: Course) {
+  const lectureGroups = await getLecturesCommand({
     year: course.year,
-    courseId: course.id,
+    courseSlug: course.slug,
   });
-  return lectures.map((lecture) =>
-    lectureSchema.parse({
-      ...lecture,
-      course: course,
-    }),
-  );
+  return lectureGroups.map((group) => lectureGroupSchema.parse(group));
 }
 
-export const getLectures = memoizeAsync(_getLectures, {
+export const getLectureGroups = memoizeAsync(_getLectureGroups, {
   getCacheKey: courseUniqueKey,
 });
+
+export async function getAllLectures(course: Course): Promise<Lecture[]> {
+  const groups = await getLectureGroups(course);
+  return groups.flatMap((group) => group.lectures);
+}

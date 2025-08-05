@@ -1,12 +1,13 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { courseChecksAtom, toggleCourseCheckAtom } from "../atoms/check";
-import { courseSelectIdAtom, coursesAtom } from "../atoms/course";
+import { courseSelectSlugAtom, coursesAtom } from "../atoms/course";
 import { uniqueKey } from "../services/courses";
 import { ListItem } from "./list-item";
 
 export function CourseList() {
   const courses = useAtomValue(coursesAtom);
-  const [selectedCourseId, setSelectedCourseId] = useAtom(courseSelectIdAtom);
+  const [selectedCourseSlug, setSelectedCourseSlug] =
+    useAtom(courseSelectSlugAtom);
   const courseChecks = useAtomValue(courseChecksAtom);
   const toggleChecks = useSetAtom(toggleCourseCheckAtom);
 
@@ -15,10 +16,10 @@ export function CourseList() {
       {courses.map((course) => (
         <ListItem
           key={uniqueKey(course)}
-          value={course.id}
-          selected={course.id === selectedCourseId}
-          onSelect={setSelectedCourseId}
-          checked={courseChecks.has(course.id)}
+          value={course.slug}
+          selected={course.slug === selectedCourseSlug}
+          onSelect={setSelectedCourseSlug}
+          checked={courseChecks.has(course.slug)}
           onToggleCheck={toggleChecks}
         >
           {course.name}

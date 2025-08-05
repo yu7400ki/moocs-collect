@@ -1,17 +1,16 @@
 import { IconButton } from "@/components/ui/icon-button";
 import { Spinner } from "@/components/ui/spinner";
-import type { Page } from "@/features/course/schemas/page";
 import { useSetAtom } from "jotai";
 import { RotateCcwIcon } from "lucide-react";
 import { css } from "styled-system/css";
-import { retryAtom } from "../atoms/queue";
+import { type DownloadItem, retryAtom } from "../atoms/queue";
 
 export type Props = {
-  page: Page;
+  item: DownloadItem;
   status: "pending" | "running" | "completed" | "error";
 };
 
-export function ListItem({ page, status }: Props) {
+export function ListItem({ item, status }: Props) {
   return (
     <div
       className={css({
@@ -35,16 +34,16 @@ export function ListItem({ page, status }: Props) {
           fontSize: "xs",
         })}
       >
-        {page.lecture.course.name}
+        {item.course.name}
         <span className={css({ mx: 1 })}>/</span>
-        {page.lecture.name}
+        {item.lecture.name}
       </p>
       <p
         className={css({
           gridArea: "title",
         })}
       >
-        {page.title}
+        {item.name}
       </p>
       <div
         className={css({
@@ -57,13 +56,13 @@ export function ListItem({ page, status }: Props) {
           fontSize: "sm",
         })}
       >
-        <Status page={page} status={status} />
+        <Status item={item} status={status} />
       </div>
     </div>
   );
 }
 
-function Status({ page, status }: Props) {
+function Status({ item, status }: Props) {
   switch (status) {
     case "pending": {
       return "待機中";
@@ -75,7 +74,7 @@ function Status({ page, status }: Props) {
       return null;
     }
     case "error": {
-      return <RetryButton page={page} />;
+      return <RetryButton item={item} />;
     }
     default: {
       return null;
@@ -83,14 +82,14 @@ function Status({ page, status }: Props) {
   }
 }
 
-function RetryButton({ page }: { page: Page }) {
+function RetryButton({ item }: { item: DownloadItem }) {
   const retry = useSetAtom(retryAtom);
 
   return (
     <IconButton
       aria-label="再試行"
       onClick={() => {
-        retry(page);
+        retry(item);
       }}
       variant="ghost"
       size="xs"

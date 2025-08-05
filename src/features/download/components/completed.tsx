@@ -15,8 +15,8 @@ export function Completed() {
   return (
     <div>
       <div className={css({ display: "grid" })}>
-        {[...completed].reverse().map((page) => (
-          <ListItem key={uniqueKey(page)} page={page} status="completed" />
+        {[...completed].reverse().map((item) => (
+          <ListItem key={uniqueKey(item)} item={item} status="completed" />
         ))}
       </div>
     </div>

@@ -2,12 +2,14 @@ import { z } from "zod";
 
 export const courseSchema = z.object({
   year: z.number(),
-  id: z.string().brand("CourseId"),
+  slug: z.string().brand("CourseSlug"),
   name: z.string(),
 });
 
-export function castCourseId(id: string): z.infer<typeof courseSchema>["id"] {
-  return id as z.infer<typeof courseSchema>["id"];
+export function castCourseSlug(
+  slug: string,
+): z.infer<typeof courseSchema>["slug"] {
+  return slug as z.infer<typeof courseSchema>["slug"];
 }
 
 export type Course = z.infer<typeof courseSchema>;

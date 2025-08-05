@@ -15,11 +15,11 @@ export function InQueue() {
   return (
     <div>
       <div className={css({ display: "grid" })}>
-        {[...running].map((page) => (
-          <ListItem key={uniqueKey(page)} page={page} status="running" />
+        {[...running].map((item) => (
+          <ListItem key={uniqueKey(item)} item={item} status="running" />
         ))}
-        {[...pending].map((page) => (
-          <ListItem key={uniqueKey(page)} page={page} status="pending" />
+        {[...pending].map((item) => (
+          <ListItem key={uniqueKey(item)} item={item} status="pending" />
         ))}
       </div>
     </div>

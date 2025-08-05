@@ -1,8 +1,8 @@
 import type { MaybePromise } from "@/utils/types";
 import { type Atom, type WritableAtom, atom } from "jotai";
 import { soon } from "jotai-derive";
-import { courseSelectIdAtom, coursesAtom } from "./course";
-import { lectureSelectIdAtom, lecturesAtom } from "./lecture";
+import { courseSelectSlugAtom, coursesAtom } from "./course";
+import { lectureSelectSlugAtom, lecturesAtom } from "./lecture";
 import { pagesAtom } from "./page";
 
 export type Node = {
@@ -13,14 +13,16 @@ export type Node = {
 
 function createTreeAtom(
   initialNode: Node,
-  childrenDataAtom: Atom<{ id: string }[] | Promise<{ id: string }[]> | null>,
+  childrenDataAtom: Atom<
+    { slug: string }[] | Promise<{ slug: string }[]> | null
+  >,
 ) {
   const internalAtom = atom(initialNode);
   return atom(
     (get) => {
       return soon(get(childrenDataAtom), (data) => {
         const tree = get(internalAtom);
-        const set = new Set(data?.map(({ id }) => id));
+        const set = new Set(data?.map(({ slug }) => slug));
         const children = tree.children?.filter((node) => set.has(node.id));
         return {
           ...tree,
@@ -64,21 +66,25 @@ function createTreeOperationAtom<R>(
 
 function createChildTreeAtom<R>(
   parentTreeAtom: WritableAtom<MaybePromise<Node | null>, [Node[]], R>,
-  selectedParentIdAtom: Atom<string | null>,
-  childrenDataAtom: Atom<{ id: string }[] | Promise<{ id: string }[]> | null>,
+  selectedParentSlugAtom: Atom<string | null>,
+  childrenDataAtom: Atom<
+    { slug: string }[] | Promise<{ slug: string }[]> | null
+  >,
   parentOperationAtom: ReturnType<typeof createTreeOperationAtom>,
 ) {
   const childAtom = atom(
     (get) => {
-      const selectedParentId = get(selectedParentIdAtom);
-      if (!selectedParentId) {
+      const selectedParentSlug = get(selectedParentSlugAtom);
+      if (!selectedParentSlug) {
         return null;
       }
       return soon(get(parentTreeAtom), (parentTree) => {
         const node =
-          parentTree?.children?.find((node) => node.id === selectedParentId) ??
+          parentTree?.children?.find(
+            (node) => node.id === selectedParentSlug,
+          ) ??
           ({
-            id: selectedParentId,
+            id: selectedParentSlug,
             checked: false,
             children: [],
           } satisfies Node);
@@ -86,7 +92,7 @@ function createChildTreeAtom<R>(
         if (!copiedNode?.children) {
           return soon(get(childrenDataAtom), (data) => {
             const children = (data ?? []).reduce((nodes, child) => {
-              nodes.push({ id: child.id, checked: true });
+              nodes.push({ id: child.slug, checked: true });
               return nodes;
             }, [] as Node[]);
             copiedNode.children = children;
@@ -124,14 +130,14 @@ export const courseTreeAtom = createTreeAtom(
 
 export const lectureTreeAtom = createChildTreeAtom(
   courseTreeAtom,
-  courseSelectIdAtom,
+  courseSelectSlugAtom,
   lecturesAtom,
   createTreeOperationAtom(courseTreeAtom),
 );
 
 export const pageTreeAtom = createChildTreeAtom(
   lectureTreeAtom,
-  lectureSelectIdAtom,
+  lectureSelectSlugAtom,
   pagesAtom,
   createTreeOperationAtom(lectureTreeAtom),
 );
