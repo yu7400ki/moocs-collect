@@ -7,7 +7,7 @@ import { Sidebar } from "./-components/sidebar";
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: () => {
     const authenticated = store.get(authenticatedAtom);
-    if (!authenticated) {
+    if (authenticated === false) {
       throw redirect({
         to: "/login",
       });
