@@ -1,6 +1,6 @@
 use rayon::prelude::*;
 
-use crate::state::CollectState;
+use crate::state::{CollectState, SearchState};
 use collect::{
     domain::models::{
         CourseKey, CourseSlug, LectureKey, LectureSlug, PageKey, PageSlug, Slide, SlideContent,
@@ -44,9 +44,10 @@ pub async fn download_slides(
     course_slug: String,
     lecture_slug: String,
     page_slug: String,
-    state: State<'_, CollectState>,
+    collect_state: State<'_, CollectState>,
+    search_state: State<'_, SearchState>,
 ) -> Result<(), DownloadError> {
-    let collect = &state.collect;
+    let collect = &collect_state.collect;
 
     // Build the page key with better error messages
     let year_obj = Year::new(year)
@@ -95,7 +96,7 @@ pub async fn download_slides(
     let preprocessed_contents = futures::future::join_all(
         contents
             .iter()
-            .map(|content| preprocessor.preprocess(&state.client, content)),
+            .map(|content| preprocessor.preprocess(&collect_state.client, content)),
     )
     .await
     .into_iter()
@@ -107,6 +108,13 @@ pub async fn download_slides(
         &lecture_dir,
         page_info.display_name(),
     )?;
+
+    let search_service = &search_state.0;
+    for content in &contents {
+        if let Err(e) = search_service.index_slide_content(&page_key, content).await {
+            log::warn!("Failed to index slide content: {}", e);
+        }
+    }
 
     Ok(())
 }
