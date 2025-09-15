@@ -1,6 +1,7 @@
 use tauri::Manager;
 
 mod command;
+mod search;
 mod state;
 
 #[tauri::command]
@@ -24,6 +25,7 @@ pub fn run() {
                 )?;
             }
             app.manage(state::CollectState::new()?);
+            app.manage(state::SearchState::new(app)?);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -35,6 +37,7 @@ pub fn run() {
             command::get_lectures::get_lectures,
             command::get_pages::get_pages,
             command::get_archive_years::get_archive_years,
+            command::search_slides::search_slides,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

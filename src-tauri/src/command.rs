@@ -5,3 +5,4 @@ pub mod get_credential;
 pub mod get_lectures;
 pub mod get_pages;
 pub mod login;
+pub mod search_slides;

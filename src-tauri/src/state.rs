@@ -1,3 +1,4 @@
+use crate::search::{SearchError, SearchService};
 use collect::Collect;
 use reqwest::Client;
 use std::sync::Arc;
@@ -18,5 +19,15 @@ impl CollectState {
             collect: Arc::new(Collect::new(client.as_ref().clone())),
             client,
         })
+    }
+}
+
+pub struct SearchState(pub SearchService);
+
+impl SearchState {
+    pub fn new(app: &tauri::App) -> Result<Self, SearchError> {
+        let handle = app.handle();
+        let search_service = SearchService::from_app_handle(&handle)?;
+        Ok(Self(search_service))
     }
 }
