@@ -5,6 +5,7 @@ import {
   FolderOpenIcon,
   PanelLeftCloseIcon,
   PanelLeftOpenIcon,
+  SearchIcon,
   SettingsIcon,
 } from "lucide-react";
 import { useState } from "react";
@@ -52,13 +53,24 @@ export function Sidebar() {
           </Link>
         </SidebarButton>
         <SidebarButton asChild>
+          <Link to="/search">
+            <SearchIcon />
+            <span>検索</span>
+          </Link>
+        </SidebarButton>
+      </div>
+      <div
+        className={css({
+          display: "grid",
+          gap: 1,
+        })}
+      >
+        <SidebarButton asChild>
           <Link to="/download">
             <DownloadIcon />
             <span>ダウンロード</span>
           </Link>
         </SidebarButton>
-      </div>
-      <div>
         <SidebarButton asChild>
           <Link to="/settings">
             <SettingsIcon />
