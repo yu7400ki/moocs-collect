@@ -1,4 +1,6 @@
 use crate::domain::models::keys::PageKey;
+use html_escape::decode_html_entities;
+use regex::Regex;
 
 /// Slide domain model
 #[derive(Debug, Clone)]
@@ -73,6 +75,16 @@ impl ProcessedSvg {
             index,
         }
     }
+
+    pub fn get_texts(&self) -> Vec<String> {
+        let aria_label_regex =
+            Regex::new(r#"<g[^>]*role=['"]img['"][^>]*aria-label=['"]([^'"]*)"#).unwrap();
+        aria_label_regex
+            .captures_iter(&self.content)
+            .filter_map(|captures| captures.get(1))
+            .map(|capture| decode_html_entities(capture.as_str()).to_string())
+            .collect()
+    }
 }
 
 /// Slide content domain model
@@ -93,6 +105,13 @@ impl SlideContent {
 
     pub fn slide_count(&self) -> usize {
         self.svgs.len()
+    }
+
+    pub fn get_texts(&self) -> Vec<String> {
+        self.svgs
+            .iter()
+            .map(|svg| svg.get_texts().join("\n"))
+            .collect()
     }
 }
 
@@ -119,5 +138,38 @@ mod tests {
 
         assert!(!content.is_empty());
         assert_eq!(content.slide_count(), 1);
+    }
+
+    #[test]
+    fn test_get_texts() {
+        let svg_content = r#"
+            <svg>
+                <g role="img" aria-label="Test 1">
+                    <path d="..."/>
+                </g>
+                <g role='img' aria-label='Test 2'>
+                    <circle/>
+                </g>
+                <g id="test" role="img" aria-label="Test 3">
+                    <rect/>
+                </g>
+                <g role="img" aria-label="Test 4">
+                    <rect/>
+                </g>
+                <g role="button" aria-label="Not an Image">
+                    <path d="..."/>
+                </g>
+            </svg>
+        "#;
+
+        let svg = ProcessedSvg::new(svg_content, 0);
+        let texts = svg.get_texts();
+
+        assert_eq!(texts.len(), 4);
+        assert!(texts.contains(&"Test 1".to_string()));
+        assert!(texts.contains(&"Test 2".to_string()));
+        assert!(texts.contains(&"Test 3".to_string()));
+        assert!(texts.contains(&"Test 4".to_string()));
+        assert!(!texts.contains(&"Not an Image".to_string()));
     }
 }
