@@ -50,7 +50,7 @@ pub async fn download_slides(
     collect_state: State<'_, CollectState>,
     search_state: State<'_, SearchState>,
     db_pool: State<'_, SqlitePool>,
-) -> Result<(), DownloadError> {
+) -> Result<Option<String>, DownloadError> {
     let collect = &collect_state.collect;
 
     // Build the page key with better error messages
@@ -130,7 +130,11 @@ pub async fn download_slides(
         }
     }
 
-    Ok(())
+    if let Some(first_path) = saved_paths.first() {
+        Ok(Some(first_path.to_string_lossy().to_string()))
+    } else {
+        Ok(None)
+    }
 }
 
 fn get_download_dir(app: &tauri::AppHandle) -> Result<std::path::PathBuf, DownloadError> {

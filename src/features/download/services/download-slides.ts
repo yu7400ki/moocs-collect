@@ -2,7 +2,7 @@ import { downloadSlides as downloadSlidesCommand } from "@/command/download-slid
 import type { Page } from "@/features/course/schemas/page";
 
 export async function downloadSlides(page: Page) {
-  await downloadSlidesCommand({
+  return await downloadSlidesCommand({
     year: page.year,
     courseSlug: page.courseSlug,
     lectureSlug: page.lectureSlug,

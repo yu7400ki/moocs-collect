@@ -7,6 +7,6 @@ export type Args = {
   pageSlug: string;
 };
 
-export type Output = undefined;
+export type Output = string | undefined;
 
 export const downloadSlides = createCommand<Args, Output>("download_slides");

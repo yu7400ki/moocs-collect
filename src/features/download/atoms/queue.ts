@@ -15,8 +15,8 @@ const queue = new PQueue({ concurrency: 5 });
 
 const pendingQueue = atom(new Set<DownloadItem>());
 const runningQueue = atom(new Set<DownloadItem>());
-const completedQueue = atom(new Set<DownloadItem>());
-const errorQueue = atom(new Set<DownloadItem>());
+const completedQueue = atom(new Set<DownloadItem & { path?: string }>());
+const errorQueue = atom(new Set<DownloadItem & { reason?: string }>());
 
 export const queueAtom = atom(
   (get) => {
@@ -45,17 +45,23 @@ export const queueAtom = atom(
         return next;
       });
       try {
-        await downloadSlides(downloadItem);
+        const path = await downloadSlides(downloadItem);
         set(completedQueue, (prev) => {
           const next = new Set(prev);
-          next.add(downloadItem);
+          next.add({ ...downloadItem, path });
           return next;
         });
         set(recordedCoursesAtom);
       } catch (error) {
+        const reason =
+          error instanceof Error
+            ? error.message
+            : typeof error === "string"
+              ? error
+              : "Unknown error";
         set(errorQueue, (prev) => {
           const next = new Set(prev);
-          next.add(downloadItem);
+          next.add({ ...downloadItem, reason });
           return next;
         });
       }

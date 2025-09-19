@@ -1,14 +1,25 @@
 import { IconButton } from "@/components/ui/icon-button";
 import { Spinner } from "@/components/ui/spinner";
+import { openPath } from "@tauri-apps/plugin-opener";
 import { useSetAtom } from "jotai";
-import { RotateCcwIcon } from "lucide-react";
+import { ExternalLinkIcon, RotateCcwIcon } from "lucide-react";
+import { useCallback, useTransition } from "react";
 import { css } from "styled-system/css";
 import { type DownloadItem, retryAtom } from "../atoms/queue";
 
-export type Props = {
-  item: DownloadItem;
-  status: "pending" | "running" | "completed" | "error";
-};
+export type Props =
+  | {
+      item: DownloadItem;
+      status: "pending" | "running";
+    }
+  | {
+      item: DownloadItem & { path?: string };
+      status: "completed";
+    }
+  | {
+      item: DownloadItem & { reason?: string };
+      status: "error";
+    };
 
 export function ListItem({ item, status }: Props) {
   return (
@@ -71,7 +82,7 @@ function Status({ item, status }: Props) {
       return <Spinner size="sm" />;
     }
     case "completed": {
-      return null;
+      return item.path ? <OpenButton path={item.path} /> : null;
     }
     case "error": {
       return <RetryButton item={item} />;
@@ -80,6 +91,28 @@ function Status({ item, status }: Props) {
       return null;
     }
   }
+}
+
+function OpenButton({ path }: { path: string }) {
+  const [isPending, startTransition] = useTransition();
+
+  const handleOpenSlide = useCallback(() => {
+    startTransition(() => {
+      openPath(path);
+    });
+  }, [path]);
+
+  return (
+    <IconButton
+      aria-label="開く"
+      onClick={handleOpenSlide}
+      disabled={isPending}
+      variant="ghost"
+      size="xs"
+    >
+      <ExternalLinkIcon />
+    </IconButton>
+  );
 }
 
 function RetryButton({ item }: { item: DownloadItem }) {
