@@ -8,6 +8,15 @@
     "store:default",
     "dialog:default",
     "process:default",
-    "process:allow-restart"
+    "process:allow-restart",
+    "opener:allow-open-path",
+    {
+      "identifier": "opener:allow-open-path",
+      "allow": [
+        {
+          "path": "**/*.pdf"
+        }
+      ]
+    }
   ]
 }

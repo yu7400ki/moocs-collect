@@ -1,5 +1,7 @@
 import { Text } from "@/components/ui/text";
-import { ChevronRightIcon } from "lucide-react";
+import { openPath } from "@tauri-apps/plugin-opener";
+import { ChevronRightIcon, ExternalLinkIcon } from "lucide-react";
+import { useCallback, useTransition } from "react";
 import { css } from "styled-system/css";
 import { Box, HStack, VStack } from "styled-system/jsx";
 import type { HighlightedText, SlideSearchEntry } from "../services/search";
@@ -9,6 +11,14 @@ interface SearchResultItemProps {
 }
 
 export function SearchResultItem({ entry }: SearchResultItemProps) {
+  const [isPending, startTransition] = useTransition();
+
+  const handleOpenSlide = useCallback(() => {
+    startTransition(() => {
+      openPath(entry.downloadPath);
+    });
+  }, [entry.downloadPath]);
+
   const renderHighlightedContent = (highlights: HighlightedText[]) => {
     return highlights.map((highlight, idx) =>
       highlight.isHighlighted ? (
@@ -37,26 +47,45 @@ export function SearchResultItem({ entry }: SearchResultItemProps) {
   };
 
   return (
-    <Box
-      p="4"
-      bg="bg.default"
-      border="1px solid"
-      borderColor="border.subtle"
-      rounded="l2"
-      transition="background-color 0.2s"
-      _hover={{
-        bg: "bg.canvas",
-      }}
+    <button
+      type="button"
+      className={css({
+        p: 4,
+        bg: "bg.default",
+        border: "1px solid",
+        borderColor: "border.subtle",
+        rounded: "l2",
+        transition: "background-color 0.2s",
+        cursor: "pointer",
+        textAlign: "left",
+        _hover: {
+          bg: "bg.canvas",
+        },
+        _focusVisible: {
+          outline: "2px solid",
+          outlineColor: "colorPalette.default",
+          outlineOffset: "2px",
+        },
+      })}
+      onClick={handleOpenSlide}
+      disabled={isPending}
     >
       <VStack gap="3" alignItems="stretch">
         <VStack gap="1" alignItems="flex-start">
-          <HStack gap="2" flexWrap="wrap" alignItems="center">
+          <HStack gap="2" flexWrap="wrap" alignItems="center" w="full">
             <Box fontSize="xs" fontWeight="semibold">
               {entry.year}年度
             </Box>
             <Box color="fg.muted" fontSize="sm">
               {entry.courseName}
             </Box>
+            <ExternalLinkIcon
+              className={css({
+                ml: "auto",
+                h: "1em",
+                w: "1em",
+              })}
+            />
           </HStack>
           <HStack gap="2" fontSize="sm">
             <Box color="fg.muted">{entry.lectureName}</Box>
@@ -81,6 +110,6 @@ export function SearchResultItem({ entry }: SearchResultItemProps) {
           </Text>
         </Box>
       </VStack>
-    </Box>
+    </button>
   );
 }
