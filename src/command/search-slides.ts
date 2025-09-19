@@ -2,8 +2,6 @@ import { createCommand } from "./utils";
 
 export type SearchSlidesArgs = {
   query: string;
-  yearFilter?: number;
-  coursesFilter?: string[];
 };
 
 export type HighlightedText = {
@@ -11,17 +9,23 @@ export type HighlightedText = {
   isHighlighted: boolean;
 };
 
-export type SearchResult = {
+type SearchResult = {
   pageKey: string;
-  year: number;
-  course: string;
-  lecture: string;
-  page: string;
+  facet: string;
   contentSnippet: string;
   highlightedContent: HighlightedText[];
   score: number;
 };
 
-export const searchSlides = createCommand<SearchSlidesArgs, SearchResult[]>(
+export type SlideSearchEntry = {
+  searchResult: SearchResult;
+  year: number;
+  courseName: string;
+  lectureName: string;
+  pageName: string;
+  downloadPath: string;
+};
+
+export const searchSlides = createCommand<SearchSlidesArgs, SlideSearchEntry[]>(
   "search_slides",
 );

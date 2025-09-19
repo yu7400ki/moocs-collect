@@ -2,13 +2,13 @@ import { Text } from "@/components/ui/text";
 import { ChevronRightIcon } from "lucide-react";
 import { css } from "styled-system/css";
 import { Box, HStack, VStack } from "styled-system/jsx";
-import type { HighlightedText, SearchResult } from "../services/search";
+import type { HighlightedText, SlideSearchEntry } from "../services/search";
 
 interface SearchResultItemProps {
-  result: SearchResult;
+  entry: SlideSearchEntry;
 }
 
-export function SearchResultItem({ result }: SearchResultItemProps) {
+export function SearchResultItem({ entry }: SearchResultItemProps) {
   const renderHighlightedContent = (highlights: HighlightedText[]) => {
     return highlights.map((highlight, idx) =>
       highlight.isHighlighted ? (
@@ -52,18 +52,18 @@ export function SearchResultItem({ result }: SearchResultItemProps) {
         <VStack gap="1" alignItems="flex-start">
           <HStack gap="2" flexWrap="wrap" alignItems="center">
             <Box fontSize="xs" fontWeight="semibold">
-              {result.year}年度
+              {entry.year}年度
             </Box>
             <Box color="fg.muted" fontSize="sm">
-              {result.course}
+              {entry.courseName}
             </Box>
           </HStack>
           <HStack gap="2" fontSize="sm">
-            <Box color="fg.muted">{result.lecture}</Box>
+            <Box color="fg.muted">{entry.lectureName}</Box>
             <ChevronRightIcon
               className={css({ color: "fg.muted", w: "1em", h: "1em" })}
             />
-            <Box color="fg.default">{result.page}</Box>
+            <Box color="fg.default">{entry.pageName}</Box>
           </HStack>
         </VStack>
         <Box
@@ -75,9 +75,9 @@ export function SearchResultItem({ result }: SearchResultItemProps) {
           })}
         >
           <Text fontSize="sm" lineHeight="relaxed" color="fg.default">
-            {result.highlightedContent.length > 0
-              ? renderHighlightedContent(result.highlightedContent)
-              : result.contentSnippet}
+            {entry.searchResult.highlightedContent.length > 0
+              ? renderHighlightedContent(entry.searchResult.highlightedContent)
+              : entry.searchResult.contentSnippet}
           </Text>
         </Box>
       </VStack>

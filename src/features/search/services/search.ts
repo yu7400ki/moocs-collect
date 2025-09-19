@@ -1,14 +1,14 @@
 import {
   type HighlightedText,
-  type SearchResult,
   type SearchSlidesArgs,
+  type SlideSearchEntry,
   searchSlides as searchSlidesCommand,
 } from "@/command/search-slides";
 
 export const searchSlides = async (
   args: SearchSlidesArgs,
-): Promise<SearchResult[]> => {
+): Promise<SlideSearchEntry[]> => {
   return await searchSlidesCommand(args);
 };
 
-export type { SearchResult, HighlightedText };
+export type { SlideSearchEntry, HighlightedText };

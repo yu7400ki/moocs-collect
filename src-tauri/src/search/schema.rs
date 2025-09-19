@@ -1,5 +1,5 @@
 use tantivy::schema::{
-    Field, IndexRecordOption, NumericOptions, Schema, TextFieldIndexing, TextOptions,
+    FacetOptions, Field, IndexRecordOption, Schema, TextFieldIndexing, TextOptions,
 };
 
 use super::analyzers::{TOKENIZER_BIGRAM, TOKENIZER_LANG_JA};
@@ -7,10 +7,7 @@ use super::analyzers::{TOKENIZER_BIGRAM, TOKENIZER_LANG_JA};
 pub struct SlideSchema {
     pub schema: Schema,
     pub key: Field,
-    pub year: Field,
-    pub course: Field,
-    pub lecture: Field,
-    pub page: Field,
+    pub facet: Field,
     pub content_raw: Field,
     pub content_ja: Field,
     pub content_bi: Field,
@@ -30,43 +27,7 @@ impl SlideSchema {
                 )
                 .set_stored(),
         );
-        let year = schema_builder.add_u64_field(
-            "year",
-            NumericOptions::default()
-                .set_indexed()
-                .set_fast()
-                .set_stored(),
-        );
-        let course = schema_builder.add_text_field(
-            "course",
-            TextOptions::default()
-                .set_indexing_options(
-                    TextFieldIndexing::default()
-                        .set_tokenizer("raw")
-                        .set_index_option(IndexRecordOption::Basic),
-                )
-                .set_stored(),
-        );
-        let lecture = schema_builder.add_text_field(
-            "lecture",
-            TextOptions::default()
-                .set_indexing_options(
-                    TextFieldIndexing::default()
-                        .set_tokenizer("raw")
-                        .set_index_option(IndexRecordOption::Basic),
-                )
-                .set_stored(),
-        );
-        let page = schema_builder.add_text_field(
-            "page",
-            TextOptions::default()
-                .set_indexing_options(
-                    TextFieldIndexing::default()
-                        .set_tokenizer("raw")
-                        .set_index_option(IndexRecordOption::Basic),
-                )
-                .set_stored(),
-        );
+        let facet = schema_builder.add_facet_field("facet", FacetOptions::default().set_stored());
         let content_raw = schema_builder.add_text_field(
             "content",
             TextOptions::default()
@@ -103,13 +64,29 @@ impl SlideSchema {
         Self {
             schema,
             key,
-            year,
-            course,
-            lecture,
-            page,
+            facet,
             content_raw,
             content_ja,
             content_bi,
         }
+    }
+}
+
+impl SlideSchema {
+    pub fn from_existing(existing: &Schema) -> Option<Self> {
+        let key = existing.get_field("key").ok()?;
+        let facet = existing.get_field("facet").ok()?;
+        let content_raw = existing.get_field("content").ok()?;
+        let content_ja = existing.get_field("content_ja").ok()?;
+        let content_bi = existing.get_field("content_bi").ok()?;
+
+        Some(Self {
+            schema: existing.clone(),
+            key,
+            facet,
+            content_raw,
+            content_ja,
+            content_bi,
+        })
     }
 }

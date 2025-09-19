@@ -5,9 +5,9 @@ import { searchResultsAtom } from "../atoms/search";
 import { SearchResultItem } from "./search-result-item";
 
 export function SearchResults() {
-  const results = useAtomValue(searchResultsAtom);
+  const entries = useAtomValue(searchResultsAtom);
 
-  if (results.length === 0) {
+  if (entries.length === 0) {
     return (
       <Box p="8" textAlign="center" color="fg.muted">
         <p>検索結果が見つかりませんでした</p>
@@ -29,12 +29,12 @@ export function SearchResults() {
           検索結果
         </Text>
         <Text color="fg.muted" fontSize="sm">
-          {results.length}件見つかりました
+          {entries.length}件見つかりました
         </Text>
       </Flex>
       <VStack gap="3" alignItems="stretch">
-        {results.map((result) => (
-          <SearchResultItem key={result.pageKey} result={result} />
+        {entries.map((entry) => (
+          <SearchResultItem key={entry.searchResult.facet} entry={entry} />
         ))}
       </VStack>
     </Box>

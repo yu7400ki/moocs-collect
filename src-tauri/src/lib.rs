@@ -1,6 +1,7 @@
-use tauri::Manager;
+use tauri::{async_runtime, Manager};
 
 mod command;
+mod db;
 mod search;
 mod state;
 
@@ -17,13 +18,19 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
+            let handle = app.handle();
+
             if cfg!(debug_assertions) {
-                app.handle().plugin(
+                handle.plugin(
                     tauri_plugin_log::Builder::default()
                         .level(log::LevelFilter::Info)
                         .build(),
                 )?;
             }
+
+            let db_pool = async_runtime::block_on(db::init(handle.clone()))?;
+
+            app.manage(db_pool);
             app.manage(state::CollectState::new()?);
             app.manage(state::SearchState::new(app)?);
             Ok(())

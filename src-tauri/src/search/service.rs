@@ -1,11 +1,11 @@
 use std::path::PathBuf;
 
-use collect::domain::models::{PageKey, SlideContent};
+use collect::domain::models::SlideContent;
 use tantivy::collector::TopDocs;
 use tantivy::doc;
-use tantivy::schema::Value;
+use tantivy::schema::{Facet, Value};
 use tantivy::snippet::{Snippet, SnippetGenerator};
-use tantivy::{IndexReader, ReloadPolicy, TantivyDocument};
+use tantivy::{IndexReader, ReloadPolicy, TantivyDocument, Term};
 
 use tauri::{AppHandle, Manager};
 
@@ -66,25 +66,21 @@ impl SearchService {
 
     pub async fn index_slide_content(
         &self,
-        page_key: &PageKey,
         slide_content: &SlideContent,
+        index: usize,
     ) -> Result<(), SearchError> {
         let mut index_writer = self.index_manager.writer(50_000_000)?;
         let schema = &self.index_manager.schema;
 
         let text = slide_content.get_texts().join("\n");
 
-        let page_key_str = page_key.to_string();
-        let year = page_key.lecture_key.course_key.year.value() as u64;
-        let course = page_key.lecture_key.course_key.slug.value();
-        let lecture = page_key.lecture_key.slug.value();
-        let page = page_key.slug.value();
+        let page_key = &slide_content.page_key;
+        let facet_path = format!("/{}/{}", page_key, index);
+        let facet_value = Facet::from(&facet_path);
+        index_writer.delete_term(Term::from_facet(schema.facet, &facet_value));
         let doc = doc!(
-            schema.key => page_key_str,
-            schema.year => year,
-            schema.course => course.to_string(),
-            schema.lecture => lecture.to_string(),
-            schema.page => page.to_string(),
+            schema.key => slide_content.page_key.to_string(),
+            schema.facet => facet_value,
             schema.content_raw => text.to_string(),
             schema.content_ja => text.to_string(),
             schema.content_bi => text.to_string(),
@@ -102,7 +98,7 @@ impl SearchService {
         let searcher = self.reader.searcher();
         let schema: &SlideSchema = &self.index_manager.schema;
 
-        let parsed_query = build_query(&self.index_manager.index, schema, query_str, opts)?;
+        let parsed_query = build_query(&self.index_manager.index, schema, query_str)?;
 
         let snippet_generator_ja =
             SnippetGenerator::create(&searcher, &*parsed_query, schema.content_ja)?;
@@ -115,30 +111,19 @@ impl SearchService {
         for (score, doc_address) in top_docs {
             let retrieved_doc: TantivyDocument = searcher.doc(doc_address)?;
 
-            let year = retrieved_doc
-                .get_first(schema.year)
-                .and_then(|v| v.as_u64())
-                .unwrap_or(0);
-            let course = retrieved_doc
-                .get_first(schema.course)
-                .and_then(|v| v.as_str())
-                .unwrap_or("")
-                .to_string();
-            let page_key = retrieved_doc
+            let key = retrieved_doc
                 .get_first(schema.key)
                 .and_then(|v| v.as_str())
                 .unwrap_or("")
                 .to_string();
-            let lecture = retrieved_doc
-                .get_first(schema.lecture)
-                .and_then(|v| v.as_str())
-                .unwrap_or("")
-                .to_string();
-            let page = retrieved_doc
-                .get_first(schema.page)
-                .and_then(|v| v.as_str())
-                .unwrap_or("")
-                .to_string();
+            let facet = retrieved_doc
+                .get_first(schema.facet)
+                .and_then(|v| v.as_facet())
+                .map(|encoded| {
+                    let facet = Facet::from_encoded(encoded.into()).unwrap();
+                    facet.to_path_string()
+                })
+                .unwrap_or_default();
             let content_raw = retrieved_doc
                 .get_first(schema.content_raw)
                 .and_then(|v| v.as_str())
@@ -165,11 +150,8 @@ impl SearchService {
             }
 
             results.push(SearchResult {
-                page_key,
-                year,
-                course,
-                lecture,
-                page,
+                page_key: key,
+                facet,
                 content_snippet,
                 highlighted_content,
                 score,

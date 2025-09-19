@@ -12,7 +12,8 @@
     "format": "run-p format:*",
     "format:biome": "biome check --write",
     "format:cargo": "cargo fmt --all",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "migration": "drizzle-kit generate"
   },
   "dependencies": {
     "@ark-ui/react": "^5.0.1",
@@ -47,6 +48,8 @@
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
+    "drizzle-kit": "^0.31.4",
+    "drizzle-orm": "^0.44.5",
     "npm-run-all2": "^7.0.2",
     "react-scan": "^0.2.9",
     "typescript": "^5.8.2",

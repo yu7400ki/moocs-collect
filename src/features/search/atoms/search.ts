@@ -13,19 +13,11 @@ export const searchQueryAtom = atom(
   },
 );
 
-export const searchYearFilterAtom = atom<number | undefined>(undefined);
-
-export const searchCoursesFilterAtom = atom<string[]>([]);
-
 const searchParamsAtom = atom((get) => {
   const query = get(searchQueryDebounced.debouncedValueAtom);
-  const yearFilter = get(searchYearFilterAtom);
-  const coursesFilter = get(searchCoursesFilterAtom);
 
   return {
     query: query.trim().replace(/\s+/g, " "),
-    yearFilter,
-    coursesFilter,
   };
 });
 

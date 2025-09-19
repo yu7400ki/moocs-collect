@@ -1,14 +1,15 @@
-use rayon::prelude::*;
+use std::path::PathBuf;
 
 use crate::state::{CollectState, SearchState};
 use collect::{
     domain::models::{
-        CourseKey, CourseSlug, LectureKey, LectureSlug, PageKey, PageSlug, Slide, SlideContent,
-        Year,
+        Course, CourseKey, CourseSlug, Lecture, LectureKey, LecturePage, LectureSlug, PageKey,
+        PageSlug, Slide, SlideContent, Year,
     },
     error::CollectError,
     pdf::{self, PdfConversionError, PreProcessor},
 };
+use sqlx::SqlitePool;
 use tauri::{Manager, State};
 use tauri_plugin_store::StoreExt;
 
@@ -26,6 +27,8 @@ pub enum DownloadError {
     Io(#[from] std::io::Error),
     #[error("Path error: {0}")]
     Path(String),
+    #[error("Database error: {0}")]
+    Database(#[from] sqlx::Error),
 }
 
 impl serde::Serialize for DownloadError {
@@ -46,6 +49,7 @@ pub async fn download_slides(
     page_slug: String,
     collect_state: State<'_, CollectState>,
     search_state: State<'_, SearchState>,
+    db_pool: State<'_, SqlitePool>,
 ) -> Result<(), DownloadError> {
     let collect = &collect_state.collect;
 
@@ -102,17 +106,27 @@ pub async fn download_slides(
     .into_iter()
     .collect::<Result<Vec<_>, PdfConversionError>>()?;
 
-    save_slides(
+    let saved_paths = save_slides(
         &slides,
         &preprocessed_contents,
         &lecture_dir,
         page_info.display_name(),
     )?;
 
+    persist_downloaded_slides(
+        &db_pool,
+        &course_info,
+        &lecture_info,
+        &page_info,
+        &slides,
+        &saved_paths,
+    )
+    .await?;
+
     let search_service = &search_state.0;
-    for content in &contents {
-        if let Err(e) = search_service.index_slide_content(&page_key, content).await {
-            log::warn!("Failed to index slide content: {}", e);
+    for (idx, content) in contents.iter().enumerate() {
+        if let Err(e) = search_service.index_slide_content(content, idx).await {
+            log::warn!("Failed to index slide content ({}): {}", idx, e);
         }
     }
 
@@ -167,30 +181,131 @@ fn get_lecture_dir_from_info<P: AsRef<std::path::Path>>(
 }
 
 fn save_slides<P: AsRef<std::path::Path>>(
-    slides: &Vec<Slide>,
-    contents: &Vec<SlideContent>,
+    slides: &[Slide],
+    contents: &[SlideContent],
     lecture_path: P,
     page_title: &str,
-) -> Result<(), DownloadError> {
+) -> Result<Vec<PathBuf>, DownloadError> {
     assert_eq!(slides.len(), contents.len());
     let path = lecture_path.as_ref();
-    std::fs::create_dir_all(&path).map_err(|e| DownloadError::Io(e))?;
+    std::fs::create_dir_all(&path).map_err(DownloadError::Io)?;
 
-    slides.par_iter().zip(contents).enumerate().try_for_each(
-        |(i, (_slide, content))| -> Result<(), DownloadError> {
-            let filename = match slides.len() {
-                1 => format!("{}.pdf", page_title),
-                _ => format!("{} ({}).pdf", page_title, i + 1),
-            };
-            let mut pdf = pdf::convert(content)?;
-            let file_path = path.join(&sanitize_filename(&filename));
-            pdf.save(&file_path).map_err(|e| {
-                DownloadError::Io(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    format!("Failed to save PDF to {}: {}", file_path.display(), e),
-                ))
-            })?;
-            Ok(())
-        },
+    let mut saved_paths = Vec::with_capacity(slides.len());
+    for (index, content) in contents.iter().enumerate() {
+        let filename = match slides.len() {
+            1 => format!("{}.pdf", page_title),
+            _ => format!("{} ({}).pdf", page_title, index + 1),
+        };
+        let mut pdf = pdf::convert(content)?;
+        let file_path = path.join(&sanitize_filename(&filename));
+        pdf.save(&file_path).map_err(|e| {
+            DownloadError::Io(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Failed to save PDF to {}: {}", file_path.display(), e),
+            ))
+        })?;
+        saved_paths.push(file_path);
+    }
+
+    Ok(saved_paths)
+}
+
+async fn persist_downloaded_slides(
+    pool: &SqlitePool,
+    course: &Course,
+    lecture: &Lecture,
+    page: &LecturePage,
+    slides: &[Slide],
+    saved_paths: &[PathBuf],
+) -> Result<(), sqlx::Error> {
+    debug_assert_eq!(slides.len(), saved_paths.len());
+
+    let mut tx = pool.begin().await?;
+
+    let course_year = course.key.year.value() as i64;
+    let course_slug = course.key.slug.value();
+    let course_name = course.display_name();
+    let course_index = course.index as i64;
+
+    sqlx::query(
+        "INSERT INTO courses (year, slug, name, sort_index) VALUES (?, ?, ?, ?) \
+         ON CONFLICT(year, slug) DO UPDATE SET name = excluded.name, sort_index = excluded.sort_index, updated_at = unixepoch()",
     )
+    .bind(course_year)
+    .bind(course_slug)
+    .bind(course_name)
+    .bind(course_index)
+    .execute(&mut *tx)
+    .await?;
+
+    let course_id: i64 = sqlx::query_scalar("SELECT id FROM courses WHERE year = ? AND slug = ?")
+        .bind(course_year)
+        .bind(course_slug)
+        .fetch_one(&mut *tx)
+        .await?;
+
+    let lecture_slug = lecture.key.slug.value();
+    let lecture_name = lecture.display_name();
+    let lecture_index = lecture.index as i64;
+
+    sqlx::query(
+        "INSERT INTO lectures (course_id, slug, name, sort_index) VALUES (?, ?, ?, ?) \
+         ON CONFLICT(course_id, slug) DO UPDATE SET name = excluded.name, sort_index = excluded.sort_index, updated_at = unixepoch()",
+    )
+    .bind(course_id)
+    .bind(lecture_slug)
+    .bind(lecture_name)
+    .bind(lecture_index)
+    .execute(&mut *tx)
+    .await?;
+
+    let lecture_id: i64 =
+        sqlx::query_scalar("SELECT id FROM lectures WHERE course_id = ? AND slug = ?")
+            .bind(course_id)
+            .bind(lecture_slug)
+            .fetch_one(&mut *tx)
+            .await?;
+
+    let page_slug = page.key.slug.value();
+    let page_name = page.display_name();
+    let page_index = page.index as i64;
+    let page_key = page.key.to_string();
+
+    sqlx::query(
+        "INSERT INTO pages (lecture_id, slug, name, sort_index, key) VALUES (?, ?, ?, ?, ?) \
+         ON CONFLICT(lecture_id, slug) DO UPDATE SET name = excluded.name, sort_index = excluded.sort_index, key = excluded.key, updated_at = unixepoch()",
+    )
+    .bind(lecture_id)
+    .bind(page_slug)
+    .bind(page_name)
+    .bind(page_index)
+    .bind(&page_key)
+    .execute(&mut *tx)
+    .await?;
+
+    let page_id: i64 = sqlx::query_scalar("SELECT id FROM pages WHERE lecture_id = ? AND slug = ?")
+        .bind(lecture_id)
+        .bind(page_slug)
+        .fetch_one(&mut *tx)
+        .await?;
+
+    for (slide, saved_path) in slides.iter().zip(saved_paths) {
+        let slide_index = slide.index as i64;
+        let pdf_path = saved_path.to_string_lossy();
+
+        sqlx::query(
+            "INSERT INTO slides (page_id, idx, url, pdf_path) VALUES (?, ?, ?, ?) \
+             ON CONFLICT(page_id, idx) DO UPDATE SET url = excluded.url, pdf_path = excluded.pdf_path, downloaded_at = unixepoch()",
+        )
+        .bind(page_id)
+        .bind(slide_index)
+        .bind(&slide.url)
+        .bind(pdf_path.as_ref())
+        .execute(&mut *tx)
+        .await?;
+    }
+
+    tx.commit().await?;
+
+    Ok(())
 }
