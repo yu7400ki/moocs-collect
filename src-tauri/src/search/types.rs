@@ -20,6 +20,7 @@ pub struct SearchResult {
 #[derive(Debug, Clone)]
 pub struct SearchOptions {
     pub limit: usize,
+    pub facet_filters: Vec<String>,
 }
 
 impl SearchOptions {
@@ -27,10 +28,18 @@ impl SearchOptions {
         self.limit = limit;
         self
     }
+
+    pub fn with_facet_filters(mut self, facet_filters: Vec<String>) -> Self {
+        self.facet_filters = facet_filters;
+        self
+    }
 }
 
 impl Default for SearchOptions {
     fn default() -> Self {
-        Self { limit: 50 }
+        Self {
+            limit: 50,
+            facet_filters: Vec::new(),
+        }
     }
 }

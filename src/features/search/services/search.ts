@@ -1,4 +1,8 @@
 import {
+  type RecordedCourse,
+  getRecordedCourses as getRecordedCoursesCommand,
+} from "@/command/get-recorded-courses";
+import {
   type HighlightedText,
   type SearchSlidesArgs,
   type SlideSearchEntry,
@@ -12,3 +16,7 @@ export const searchSlides = async (
 };
 
 export type { SlideSearchEntry, HighlightedText };
+
+export const getRecordedCourses = async (): Promise<RecordedCourse[]> => {
+  return await getRecordedCoursesCommand();
+};

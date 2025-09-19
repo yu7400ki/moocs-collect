@@ -2,6 +2,7 @@ import { createCommand } from "./utils";
 
 export type SearchSlidesArgs = {
   query: string;
+  filters: string[];
 };
 
 export type HighlightedText = {

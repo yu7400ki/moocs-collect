@@ -2,7 +2,7 @@ import { atomWithDebounce } from "@/utils/atom";
 import { type SetStateAction, atom } from "jotai";
 import { derive } from "jotai-derive";
 import { loadable, unwrap } from "jotai/utils";
-import { searchSlides } from "../services/search";
+import { getRecordedCourses, searchSlides } from "../services/search";
 
 const searchQueryDebounced = atomWithDebounce("", 300);
 
@@ -13,11 +13,15 @@ export const searchQueryAtom = atom(
   },
 );
 
+export const facetFilterAtom = atom<string[]>([]);
+
 const searchParamsAtom = atom((get) => {
   const query = get(searchQueryDebounced.debouncedValueAtom);
+  const filters = get(facetFilterAtom);
 
   return {
     query: query.trim().replace(/\s+/g, " "),
+    filters,
   };
 });
 
@@ -58,3 +62,35 @@ export const isSearchingAtom = atom((get) => {
   const loadableState = get(loadableAtom);
   return loadableState.state === "loading";
 });
+
+const refreshTriggerAtom = atom({});
+const internalRecordedCoursesAtom = atom(
+  (get) => {
+    get(refreshTriggerAtom);
+    return getRecordedCourses();
+  },
+  (_, set) => {
+    set(refreshTriggerAtom, {});
+  },
+);
+
+export const recordedCoursesAtom = unwrap(
+  internalRecordedCoursesAtom,
+  (prev) => prev ?? [],
+);
+
+export const groupedRecordedCoursesAtom = atom(
+  (get) => {
+    const courses = get(recordedCoursesAtom);
+    const grouped = new Map<number, typeof courses>();
+    for (const course of courses) {
+      if (!grouped.has(course.year)) {
+        grouped.set(course.year, []);
+      }
+      // biome-ignore lint/style/noNonNullAssertion:
+      grouped.get(course.year)!.push(course);
+    }
+    return grouped;
+  },
+  (_, set) => set(recordedCoursesAtom),
+);

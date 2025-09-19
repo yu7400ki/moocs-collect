@@ -1,12 +1,18 @@
+import { IconButton } from "@/components/ui/icon-button";
+import { Popover } from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
 import { Tooltip } from "@/components/ui/tooltip";
+import { TreeSelect, type TreeSelectNode } from "@/components/ui/tree-select";
 import { Field } from "@ark-ui/react";
 import { useAtom, useAtomValue } from "jotai";
-import { CircleAlertIcon, SearchIcon } from "lucide-react";
+import { CircleAlertIcon, FilterIcon, SearchIcon } from "lucide-react";
+import { useMemo } from "react";
 import { css, cx } from "styled-system/css";
-import { Box } from "styled-system/jsx";
+import { Box, Circle } from "styled-system/jsx";
 import { input } from "styled-system/recipes";
 import {
+  facetFilterAtom,
+  groupedRecordedCoursesAtom,
   isSearchingAtom,
   searchErrorAtom,
   searchQueryAtom,
@@ -16,9 +22,26 @@ export function SearchForm() {
   const [currentQuery, setQuery] = useAtom(searchQueryAtom);
   const isSearching = useAtomValue(isSearchingAtom);
   const error = useAtomValue(searchErrorAtom);
+  const recordedCourses = useAtomValue(groupedRecordedCoursesAtom);
+  const [selected, setSelected] = useAtom(facetFilterAtom);
+
+  const filter = useMemo<TreeSelectNode[]>(() => {
+    const result: TreeSelectNode[] = [];
+    for (const [year, courses] of recordedCourses.entries()) {
+      result.push({
+        id: `/${year}`,
+        label: `${year}年度`,
+        children: courses.map((course) => ({
+          id: `/${year}/${course.slug}`,
+          label: course.name,
+        })),
+      });
+    }
+    return result;
+  }, [recordedCourses]);
 
   return (
-    <Box w="full">
+    <Box w="full" display="grid" gridTemplateColumns="1fr auto" gap="2">
       <Field.Root>
         <div
           className={cx(
@@ -103,6 +126,37 @@ export function SearchForm() {
           ) : null}
         </div>
       </Field.Root>
+      <Popover.Root
+        positioning={{
+          placement: "bottom-start",
+        }}
+      >
+        <Popover.Trigger asChild>
+          <IconButton variant="outline" position="relative">
+            <FilterIcon />
+            {selected.length > 0 && (
+              <Circle
+                colorPalette="cyan"
+                position="absolute"
+                top="-1"
+                right="-1"
+                width="2"
+                height="2"
+                bg="colorPalette.default"
+              />
+            )}
+          </IconButton>
+        </Popover.Trigger>
+        <Popover.Positioner>
+          <Popover.Content p="2">
+            <TreeSelect
+              data={filter}
+              value={selected}
+              onValueChange={setSelected}
+            />
+          </Popover.Content>
+        </Popover.Positioner>
+      </Popover.Root>
     </Box>
   );
 }

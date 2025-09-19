@@ -98,7 +98,7 @@ impl SearchService {
         let searcher = self.reader.searcher();
         let schema: &SlideSchema = &self.index_manager.schema;
 
-        let parsed_query = build_query(&self.index_manager.index, schema, query_str)?;
+        let parsed_query = build_query(&self.index_manager.index, schema, query_str, opts)?;
 
         let snippet_generator_ja =
             SnippetGenerator::create(&searcher, &*parsed_query, schema.content_ja)?;

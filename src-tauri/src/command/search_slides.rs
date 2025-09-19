@@ -38,12 +38,15 @@ pub struct SlideSearchEntry {
 #[tauri::command]
 pub async fn search_slides(
     query: String,
+    filters: Vec<String>,
     search_state: State<'_, SearchState>,
     db_pool: State<'_, SqlitePool>,
 ) -> Result<Vec<SlideSearchEntry>, SearchSlidesError> {
     let search_service = &search_state.0;
 
-    let search_options = SearchOptions::default().with_limit(50);
+    let search_options = SearchOptions::default()
+        .with_limit(50)
+        .with_facet_filters(filters);
 
     let results = search_service
         .search_slides(&query, &search_options)
@@ -69,11 +72,6 @@ async fn enrich_results(
 
         let (fallback_year, fallback_course, fallback_lecture, fallback_page, slide_idx) =
             split_facet_path(&facet);
-
-        println!(
-            "Enriching slide: key={}, facet={}, idx={:?}",
-            key, facet, slide_idx
-        );
 
         let row = sqlx::query(
             r#"
