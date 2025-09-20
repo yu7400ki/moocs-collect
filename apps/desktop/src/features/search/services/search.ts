@@ -1,6 +1,6 @@
 import {
-  type RecordedCourse,
   getRecordedCourses as getRecordedCoursesCommand,
+  type RecordedCourse,
 } from "@/command/get-recorded-courses";
 import {
   type HighlightedText,

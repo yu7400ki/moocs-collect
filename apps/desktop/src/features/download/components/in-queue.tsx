@@ -1,6 +1,6 @@
-import { uniqueKey } from "@/features/course/services/pages";
 import { useAtomValue } from "jotai";
 import { css } from "styled-system/css";
+import { uniqueKey } from "@/features/course/services/pages";
 import { queueAtom } from "../atoms/queue";
 import { Empty } from "./empty";
 import { ListItem } from "./list-item";

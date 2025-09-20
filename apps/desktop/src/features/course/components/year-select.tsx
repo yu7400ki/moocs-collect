@@ -1,6 +1,6 @@
-import { Select, createListCollection } from "@/components/ui/select";
 import { useAtom, useAtomValue } from "jotai";
 import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
+import { createListCollection, Select } from "@/components/ui/select";
 import { availableYearsAtom, yearAtom } from "../atoms/year";
 
 export function YearSelect(

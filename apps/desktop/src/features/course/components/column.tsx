@@ -1,7 +1,7 @@
-import { Spinner } from "@/components/ui/spinner";
 import { Fragment, Suspense } from "react";
 import { css } from "styled-system/css";
 import { Divider } from "styled-system/jsx";
+import { Spinner } from "@/components/ui/spinner";
 import { CourseList } from "./course-list";
 import { LectureList } from "./lecture-list";
 import { PageList } from "./page-list";

@@ -1,5 +1,5 @@
-import { getStore } from "@/utils/store";
 import * as path from "@tauri-apps/api/path";
+import { getStore } from "@/utils/store";
 import { type Settings, settingsSchema } from "../schemas/settings";
 
 const key = "settings";

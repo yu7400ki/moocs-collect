@@ -1,8 +1,3 @@
-import { IconButton } from "@/components/ui/icon-button";
-import { Popover } from "@/components/ui/popover";
-import { Spinner } from "@/components/ui/spinner";
-import { Tooltip } from "@/components/ui/tooltip";
-import { TreeSelect, type TreeSelectNode } from "@/components/ui/tree-select";
 import { Field } from "@ark-ui/react";
 import { useAtom, useAtomValue } from "jotai";
 import { CircleAlertIcon, FilterIcon, SearchIcon } from "lucide-react";
@@ -10,6 +5,11 @@ import { useMemo } from "react";
 import { css, cx } from "styled-system/css";
 import { Box, Circle } from "styled-system/jsx";
 import { input } from "styled-system/recipes";
+import { IconButton } from "@/components/ui/icon-button";
+import { Popover } from "@/components/ui/popover";
+import { Spinner } from "@/components/ui/spinner";
+import { Tooltip } from "@/components/ui/tooltip";
+import { TreeSelect, type TreeSelectNode } from "@/components/ui/tree-select";
 import {
   facetFilterAtom,
   groupedRecordedCoursesAtom,

@@ -1,9 +1,9 @@
-import { Text } from "@/components/ui/text";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { ChevronRightIcon, ExternalLinkIcon } from "lucide-react";
 import { useCallback, useTransition } from "react";
 import { css } from "styled-system/css";
 import { Box, HStack, VStack } from "styled-system/jsx";
+import { Text } from "@/components/ui/text";
 import type { HighlightedText, SlideSearchEntry } from "../services/search";
 
 interface SearchResultItemProps {

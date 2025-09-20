@@ -1,16 +1,16 @@
 import { type MemoizeCache, memoize } from "es-toolkit/function";
 
-// biome-ignore lint/suspicious/noExplicitAny:
+// biome-ignore lint/suspicious/noExplicitAny: assertion is safe here
 export function memoizeAsync<F extends (...args: any) => Promise<any>>(
   fn: F,
   options?: {
     getCacheKey?: (args: Parameters<F>[0]) => unknown;
   },
 ): ((...args: Parameters<F>) => ReturnType<F> | Awaited<ReturnType<F>>) & {
-  // biome-ignore lint/suspicious/noExplicitAny:
+  // biome-ignore lint/suspicious/noExplicitAny: assertion is safe here
   cache: MemoizeCache<any, ReturnType<F> | Promise<ReturnType<F>>>;
 } {
-  // @ts-ignore
+  // @ts-expect-error
   return memoize(fn, {
     cache: new PromiseCache(),
     ...options,

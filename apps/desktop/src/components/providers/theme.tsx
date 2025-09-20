@@ -1,6 +1,6 @@
-import { themeAtom } from "@/features/settings/atoms/theme";
 import { useAtomValue } from "jotai";
 import { useLayoutEffect } from "react";
+import { themeAtom } from "@/features/settings/atoms/theme";
 
 function applyTheme(theme: "dark" | "light") {
   document.documentElement.classList.remove("dark", "light");

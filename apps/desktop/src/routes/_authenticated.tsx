@@ -1,7 +1,7 @@
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { css } from "styled-system/css";
 import { store } from "@/components/providers/jotai";
 import { authenticatedAtom } from "@/features/auth/atoms/authenticated";
-import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
-import { css } from "styled-system/css";
 import { Sidebar } from "./-components/sidebar";
 
 export const Route = createFileRoute("/_authenticated")({

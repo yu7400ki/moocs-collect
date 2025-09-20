@@ -1,6 +1,6 @@
-import { Tabs } from "@/components/ui/tabs";
 import { useAtomValue } from "jotai";
 import { useState } from "react";
+import { Tabs } from "@/components/ui/tabs";
 import { queueAtom } from "../atoms/queue";
 import { Completed } from "../components/completed";
 import { Errors } from "../components/error";

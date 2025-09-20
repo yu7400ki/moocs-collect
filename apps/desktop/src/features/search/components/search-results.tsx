@@ -1,6 +1,6 @@
-import { Text } from "@/components/ui/text";
 import { useAtomValue } from "jotai";
 import { Box, Flex, VStack } from "styled-system/jsx";
+import { Text } from "@/components/ui/text";
 import { searchResultsAtom } from "../atoms/search";
 import { SearchResultItem } from "./search-result-item";
 

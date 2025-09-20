@@ -1,9 +1,9 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useControllableValue } from "ahooks";
 import { useCallback, useTransition } from "react";
 import { css } from "styled-system/css";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 type DirSelectorProps = Omit<React.ComponentProps<typeof Input>, "onChange"> & {
   value?: string;

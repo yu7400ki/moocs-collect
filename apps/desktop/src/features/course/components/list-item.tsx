@@ -1,6 +1,6 @@
-import { Checkbox } from "@/components/ui/checkbox";
 import { memo } from "react";
 import { css } from "styled-system/css";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export type ListItemProps<T extends string> = {
   children?: React.ReactNode;

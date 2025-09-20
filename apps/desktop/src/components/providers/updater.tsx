@@ -1,12 +1,12 @@
+import { relaunch } from "@tauri-apps/plugin-process";
+import { check, type Update } from "@tauri-apps/plugin-updater";
+import { XIcon } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { css } from "styled-system/css";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { Progress } from "@/components/ui/progress";
 import { Toast } from "@/components/ui/toast";
-import { relaunch } from "@tauri-apps/plugin-process";
-import { type Update, check } from "@tauri-apps/plugin-updater";
-import { XIcon } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { css } from "styled-system/css";
 
 const toaster = Toast.createToaster({
   placement: "bottom-end",

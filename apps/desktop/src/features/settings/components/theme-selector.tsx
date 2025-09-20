@@ -1,7 +1,7 @@
-import { RadioGroup } from "@/components/ui/radio-group";
 import { MonitorIcon, MoonIcon, SunIcon } from "lucide-react";
 import { css, cx } from "styled-system/css";
 import { Divider } from "styled-system/jsx";
+import { RadioGroup } from "@/components/ui/radio-group";
 
 type ThemeCardProps = {
   value: string;

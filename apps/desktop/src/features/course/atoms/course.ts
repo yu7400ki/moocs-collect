@@ -1,6 +1,6 @@
-import { unwrapPromise } from "@/utils/atom";
 import { atom } from "jotai";
 import { derive } from "jotai-derive";
+import { unwrapPromise } from "@/utils/atom";
 import type { Course } from "../schemas/course";
 import { getCourses } from "../services/courses";
 import { yearAtom } from "./year";

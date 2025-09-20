@@ -1,7 +1,7 @@
-import { atomWithDebounce } from "@/utils/atom";
-import { type SetStateAction, atom } from "jotai";
-import { derive } from "jotai-derive";
+import { atom, type SetStateAction } from "jotai";
 import { loadable, unwrap } from "jotai/utils";
+import { derive } from "jotai-derive";
+import { atomWithDebounce } from "@/utils/atom";
 import { getRecordedCourses, searchSlides } from "../services/search";
 
 const searchQueryDebounced = atomWithDebounce("", 300);
@@ -87,8 +87,7 @@ export const groupedRecordedCoursesAtom = atom(
       if (!grouped.has(course.year)) {
         grouped.set(course.year, []);
       }
-      // biome-ignore lint/style/noNonNullAssertion:
-      grouped.get(course.year)!.push(course);
+      grouped.get(course.year)?.push(course);
     }
     return grouped;
   },

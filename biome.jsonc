@@ -6,14 +6,18 @@
     "useIgnoreFile": true
   },
   "formatter": { "enabled": true, "useEditorconfig": true },
-  "organizeImports": { "enabled": true },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "files": {
-    "ignore": ["public", "create-style-context.tsx", "routeTree.gen.ts"]
+    "includes": [
+      "**",
+      "!**/public",
+      "!**/create-style-context.tsx",
+      "!**/routeTree.gen.ts"
+    ]
   },
   "linter": {
     "enabled": true,
     "rules": {
-      "all": true,
       "correctness": {
         "useImportExtensions": "off",
         "noUndeclaredDependencies": "off",
@@ -22,7 +26,8 @@
       },
       "performance": {
         "noBarrelFile": "off",
-        "noReExportAll": "off"
+        "noReExportAll": "off",
+        "noNamespaceImport": "off"
       },
       "style": {
         "noNamespace": "off",
@@ -33,9 +38,18 @@
             "filenameCases": ["kebab-case"]
           }
         },
-        "noNamespaceImport": "off",
         "noImplicitBoolean": "off",
-        "useNamingConvention": "off"
+        "useNamingConvention": "off",
+        "noParameterAssign": "error",
+        "useAsConstAssertion": "error",
+        "useDefaultParameterLast": "error",
+        "useEnumInitializers": "error",
+        "useSelfClosingElements": "error",
+        "useSingleVarDeclarator": "error",
+        "noUnusedTemplateLiteral": "error",
+        "useNumberNamespace": "error",
+        "noInferrableTypes": "error",
+        "noUselessElse": "error"
       },
       "suspicious": {
         "noReactSpecificProps": "off"
@@ -51,7 +65,7 @@
   },
   "overrides": [
     {
-      "include": ["src/routes/**/*"],
+      "includes": ["**/src/routes/**/*"],
       "linter": {
         "rules": {
           "style": {

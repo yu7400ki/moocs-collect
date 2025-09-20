@@ -1,8 +1,8 @@
-import { authenticatedAtom } from "@/features/auth/atoms/authenticated";
 import { useAtomValue } from "jotai";
 import { WifiOffIcon } from "lucide-react";
 import { css } from "styled-system/css";
 import { Divider, Flex } from "styled-system/jsx";
+import { authenticatedAtom } from "@/features/auth/atoms/authenticated";
 import { Column } from "../components/column";
 import { Download } from "../components/download";
 import { YearSelect } from "../components/year-select";

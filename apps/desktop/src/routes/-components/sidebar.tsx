@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
 import {
   DownloadIcon,
@@ -10,6 +9,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { css, cx } from "styled-system/css";
+import { Button } from "@/components/ui/button";
 
 export function Sidebar() {
   const [isExpanded, setIsExpanded] = useState(false);

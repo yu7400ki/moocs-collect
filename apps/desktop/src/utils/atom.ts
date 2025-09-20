@@ -1,4 +1,4 @@
-import { type Atom, type SetStateAction, atom } from "jotai";
+import { type Atom, atom, type SetStateAction } from "jotai";
 import { loadable } from "jotai/utils";
 
 export function unwrapPromise<Value>(promiseAtom: Atom<Value>) {

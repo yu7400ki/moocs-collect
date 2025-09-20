@@ -1,10 +1,10 @@
-import { IconButton } from "@/components/ui/icon-button";
-import { Spinner } from "@/components/ui/spinner";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { useSetAtom } from "jotai";
 import { ExternalLinkIcon, RotateCcwIcon } from "lucide-react";
 import { useCallback, useTransition } from "react";
 import { css } from "styled-system/css";
+import { IconButton } from "@/components/ui/icon-button";
+import { Spinner } from "@/components/ui/spinner";
 import { type DownloadItem, retryAtom } from "../atoms/queue";
 
 export type Props =

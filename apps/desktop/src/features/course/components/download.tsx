@@ -1,11 +1,10 @@
+import { DownloadIcon } from "lucide-react";
+import { useCallback, useTransition } from "react";
 import { store } from "@/components/providers/jotai";
 import { Button } from "@/components/ui/button";
 import { type DownloadItem, queueAtom } from "@/features/download/atoms/queue";
 import type { MaybePromise } from "@/utils/types";
-import { DownloadIcon } from "lucide-react";
-import { useCallback } from "react";
-import { useTransition } from "react";
-import { type Node, courseTreeAtom } from "../atoms/check";
+import { courseTreeAtom, type Node } from "../atoms/check";
 import { yearAtom } from "../atoms/year";
 import { getCourses } from "../services/courses";
 import { getAllLectures } from "../services/lectures";

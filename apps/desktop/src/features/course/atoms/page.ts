@@ -1,6 +1,6 @@
-import { unwrapPromise } from "@/utils/atom";
 import { atom } from "jotai";
 import { derive } from "jotai-derive";
+import { unwrapPromise } from "@/utils/atom";
 import type { Page } from "../schemas/page";
 import { uniqueKey } from "../services/lectures";
 import { getPages } from "../services/pages";

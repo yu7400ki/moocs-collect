@@ -1,6 +1,6 @@
-import type { MaybePromise } from "@/utils/types";
-import { type Atom, type WritableAtom, atom } from "jotai";
+import { type Atom, atom, type WritableAtom } from "jotai";
 import { soon } from "jotai-derive";
+import type { MaybePromise } from "@/utils/types";
 import { courseSelectSlugAtom, coursesAtom } from "./course";
 import { lectureSelectSlugAtom, lecturesAtom } from "./lecture";
 import { pagesAtom } from "./page";

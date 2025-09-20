@@ -10,7 +10,7 @@
     "format:cargo": "cargo fmt --all"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
+    "@biomejs/biome": "2.2.4",
     "npm-run-all2": "^8.0.4"
   }
 }
