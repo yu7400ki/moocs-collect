@@ -4,7 +4,7 @@ version = "0.3.2"
 edition = "2021"
 
 [dependencies]
-collect = { package = "collect-core", path = "../collect-core" }
+collect = { path = "../../packages/collect" }
 anyhow = { workspace = true }
 reqwest = { workspace = true }
 tokio = { workspace = true }

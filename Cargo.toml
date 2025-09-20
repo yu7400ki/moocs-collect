@@ -1,10 +1,10 @@
 [workspace]
 members = [
-    "collect-cli",
-    "collect-core",
-    "src-tauri",
+    "packages/collect",
+    "apps/cli",
+    "apps/desktop/src-tauri",
 ]
-default-members = ["collect-cli"]
+default-members = ["apps/cli"]
 resolver = "2"
 
 [workspace.dependencies]

@@ -175,7 +175,7 @@ checksum = "b0674a1ddeecb70197781e945de4b3b8ffb61fa939a5597bcf48503737663100"
 name = "app"
 version = "0.0.3"
 dependencies = [
- "collect-core",
+ "collect",
  "futures",
  "keyring",
  "lindera",
@@ -960,23 +960,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "98cc8fbded0c607b7ba9dd60cd98df59af97e84d24e49c8557331cfc26d301ce"
 
 [[package]]
-name = "collect-cli"
-version = "0.3.2"
-dependencies = [
- "anyhow",
- "clap",
- "collect-core",
- "dialoguer",
- "futures",
- "indicatif",
- "keyring",
- "rayon",
- "reqwest",
- "tokio",
-]
-
-[[package]]
-name = "collect-core"
+name = "collect"
 version = "0.2.1"
 dependencies = [
  "async-trait",
@@ -997,6 +981,22 @@ dependencies = [
  "thiserror 2.0.16",
  "tokio",
  "unicode_escape",
+]
+
+[[package]]
+name = "collect-cli"
+version = "0.3.2"
+dependencies = [
+ "anyhow",
+ "clap",
+ "collect",
+ "dialoguer",
+ "futures",
+ "indicatif",
+ "keyring",
+ "rayon",
+ "reqwest",
+ "tokio",
 ]
 
 [[package]]
