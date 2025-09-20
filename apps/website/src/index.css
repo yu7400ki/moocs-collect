@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@layer base {
+  html {
+    font-size: 14px;
+  }
+
+  @media (width >= 40rem) {
+    html {
+      font-size: 16px;
+    }
+  }
+
+  body {
+    font-family:
+      "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP",
+      "BIZ UDPGothic", "Meiryo", sans-serif;
+  }
+}

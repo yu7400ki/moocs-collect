@@ -1,0 +1,32 @@
+{
+  "name": "website",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "lint": "biome check",
+    "format": "biome check --write"
+  },
+  "dependencies": {
+    "@lucide/lab": "^0.1.2",
+    "lucide-react": "^0.479.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "tailwindcss": "^4.1.13"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.13",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "latest",
+    "@vitejs/plugin-rsc": "latest",
+    "postcss": "^8.5.6",
+    "rsc-html-stream": "^0.0.7",
+    "typescript": "^5.8.2",
+    "vite": "^7.1.6"
+  }
+}
