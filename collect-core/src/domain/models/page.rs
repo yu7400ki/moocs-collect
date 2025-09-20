@@ -1,4 +1,4 @@
-use crate::domain::models::keys::PageKey;
+use super::keys::PageKey;
 
 /// Lecture page domain model
 #[derive(Debug, Clone)]

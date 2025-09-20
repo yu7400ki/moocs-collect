@@ -1,5 +1,4 @@
-use collect_core::domain::models::{Credentials, Year};
-use collect_core::Collect;
+use collect_core::{Collect, Credentials, Year};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

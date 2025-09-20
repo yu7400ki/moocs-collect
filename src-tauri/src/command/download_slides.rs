@@ -2,12 +2,10 @@ use std::path::PathBuf;
 
 use crate::state::{CollectState, SearchState};
 use collect::{
-    domain::models::{
-        Course, CourseKey, CourseSlug, Lecture, LectureKey, LecturePage, LectureSlug, PageKey,
-        PageSlug, Slide, SlideContent, Year,
-    },
     error::CollectError,
     pdf::{self, PdfConversionError, PreProcessor},
+    Course, CourseKey, CourseSlug, Lecture, LectureKey, LecturePage, LectureSlug, PageKey,
+    PageSlug, Slide, SlideContent, Year,
 };
 use sqlx::SqlitePool;
 use tauri::{Manager, State};

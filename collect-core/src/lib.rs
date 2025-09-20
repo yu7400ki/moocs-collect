@@ -7,12 +7,10 @@ pub mod pdf;
 pub mod repository;
 pub mod service;
 
-use crate::domain::{
-    models::{
-        Course, CourseKey, Credentials, Lecture, LectureGroup, LectureKey, LecturePage, PageKey,
-        Slide, SlideContent, Year,
-    },
-    service::{AuthenticationService, CourseService, LectureService, PageService, SlideService},
+pub use crate::domain::models::*;
+
+use crate::domain::service::{
+    AuthenticationService, CourseService, LectureService, PageService, SlideService,
 };
 use crate::error::Result;
 use crate::repository::{

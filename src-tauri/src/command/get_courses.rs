@@ -1,8 +1,5 @@
 use crate::state::CollectState;
-use collect::{
-    domain::models::{Course as DomainCourse, Year},
-    error::CollectError,
-};
+use collect::{error::CollectError, Course as DomainCourse, Year};
 use tauri::State;
 
 #[derive(Debug, thiserror::Error)]

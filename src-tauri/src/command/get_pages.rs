@@ -1,9 +1,7 @@
 use crate::state::CollectState;
 use collect::{
-    domain::models::{
-        CourseKey, CourseSlug, LectureKey, LecturePage as DomainPage, LectureSlug, Year,
-    },
-    error::CollectError,
+    error::CollectError, CourseKey, CourseSlug, LectureKey, LecturePage as DomainPage, LectureSlug,
+    Year,
 };
 use tauri::State;
 

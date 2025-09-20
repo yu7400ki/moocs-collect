@@ -1,4 +1,4 @@
-use crate::domain::models::keys::{CourseKey, LectureKey};
+use super::keys::{CourseKey, LectureKey};
 
 #[derive(Debug, Clone)]
 pub struct LectureGroup {

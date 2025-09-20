@@ -1,4 +1,4 @@
-use crate::domain::models::keys::CourseKey;
+use super::keys::CourseKey;
 
 /// Course domain model
 #[derive(Debug, Clone)]

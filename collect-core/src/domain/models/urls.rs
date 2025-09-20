@@ -1,6 +1,4 @@
-use crate::domain::models::keys::{
-    CourseKey, CourseSlug, LectureKey, LectureSlug, PageKey, PageSlug, Year,
-};
+use super::keys::{CourseKey, CourseSlug, LectureKey, LectureSlug, PageKey, PageSlug, Year};
 use crate::error::{CollectError, Result};
 use regex::Regex;
 use std::str::FromStr;

@@ -1,5 +1,5 @@
 use crate::state::CollectState;
-use collect::{domain::models::Credentials, error::CollectError};
+use collect::{error::CollectError, Credentials};
 use keyring::Entry;
 use tauri::State;
 

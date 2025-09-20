@@ -1,4 +1,4 @@
-use crate::domain::models::keys::PageKey;
+use super::keys::PageKey;
 use html_escape::decode_html_entities;
 use regex::Regex;
 

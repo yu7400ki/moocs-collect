@@ -1,8 +1,6 @@
 use clap::Parser;
 use collect::{
-    domain::models::{Credentials, LecturePage, PageKey, SlideContent, Year},
-    error::CollectError,
-    pdf, Collect,
+    error::CollectError, pdf, Collect, Credentials, LecturePage, PageKey, SlideContent, Year,
 };
 use dialoguer::{console::Style, Input, Password, Select};
 use indicatif::{ProgressBar, ProgressStyle};

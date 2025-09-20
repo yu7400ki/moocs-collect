@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use collect::domain::models::SlideContent;
+use collect::SlideContent;
 use tantivy::collector::TopDocs;
 use tantivy::doc;
 use tantivy::schema::{Facet, Value};

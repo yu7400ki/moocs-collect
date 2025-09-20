@@ -1,7 +1,6 @@
 use crate::state::CollectState;
 use collect::{
-    domain::models::{CourseKey, CourseSlug, LectureGroup as DomainLectureGroup, Year},
-    error::CollectError,
+    error::CollectError, CourseKey, CourseSlug, LectureGroup as DomainLectureGroup, Year,
 };
 use tauri::State;
 
@@ -42,8 +41,8 @@ pub struct LectureGroup {
     pub index: usize,
 }
 
-impl From<&collect::domain::models::Lecture> for Lecture {
-    fn from(lecture: &collect::domain::models::Lecture) -> Self {
+impl From<&collect::Lecture> for Lecture {
+    fn from(lecture: &collect::Lecture) -> Self {
         Self {
             year: lecture.key.course_key.year.value(),
             course_slug: lecture.key.course_key.slug.value().to_string(),
