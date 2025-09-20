@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   '@park-ui/panda-preset':
-    hash: a8bf02b4df9c958efafe904d945a4a84df3031a321899e8b80b287e87379c368
+    hash: 0cc385bad462fc677aefb34595483e93916bd21a49ca44ec5e4335a0c93d10ce
     path: patches/@park-ui__panda-preset.patch
 
 importers:

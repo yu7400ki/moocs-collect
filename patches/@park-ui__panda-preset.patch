@@ -1,3 +1,77 @@
+diff --git a/dist/index.cjs b/dist/index.cjs
+index 0d0a3e360113723266f306ffeb80bef0716e065e..faae303c7b9d03ecc770e250ae8549fc78c2a2fc 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -169,7 +169,7 @@ var globalCss = (0, import_dev2.defineGlobalStyles)({
+     color: "fg.subtle"
+   },
+   "*::selection": {
+-    bg: "accent.a4"
++    bg: "colorPalette.a4"
+   }
+ });
+ 
+@@ -642,12 +642,12 @@ var button = (0, import_dev8.defineRecipe)({
+           outlineOffset: "2px"
+         },
+         _selected: {
+-          background: "accent.default",
+-          borderColor: "accent.default",
+-          color: "accent.fg",
++          background: "colorPalette.default",
++          borderColor: "colorPalette.default",
++          color: "colorPalette.fg",
+           _hover: {
+-            background: "accent.emphasized",
+-            borderColor: "accent.emphasized"
++            background: "colorPalette.emphasized",
++            borderColor: "colorPalette.emphasized"
+           }
+         }
+       },
+@@ -1661,7 +1661,7 @@ var fieldset = (0, import_dev22.defineSlotRecipe)({
+       rowGap: "1.5",
+       gridTemplateAreas: {
+         base: `
+-        "legend legend" 
++        "legend legend"
+         "helperText helperText"
+         "control control"
+         "errorText errorText"
+@@ -4541,7 +4541,7 @@ var treeView = (0, import_dev56.defineSlotRecipe)({
+       }
+     },
+     branchIndicator: {
+-      color: "accent.default",
++      color: "colorPalette.default",
+       transformOrigin: "center",
+       transitionDuration: "normal",
+       transitionProperty: "transform",
+@@ -4582,11 +4582,11 @@ var treeView = (0, import_dev56.defineSlotRecipe)({
+         color: "fg.default"
+       },
+       _selected: {
+-        background: "accent.a2",
+-        color: "accent.text",
++        background: "colorPalette.a2",
++        color: "colorPalette.text",
+         _hover: {
+-          background: "accent.a2",
+-          color: "accent.text"
++          background: "colorPalette.a2",
++          color: "colorPalette.text"
+         },
+         _before: {
+           content: '""',
+@@ -4595,7 +4595,7 @@ var treeView = (0, import_dev56.defineSlotRecipe)({
+           top: "0",
+           width: "2px",
+           height: "full",
+-          bg: "accent.default",
++          bg: "colorPalette.default",
+           zIndex: "1"
+         }
+       }
 diff --git a/dist/index.js b/dist/index.js
 index f35278f6f599ab8723ced8ea02f1fe5c1037af94..27dd6b654b53fbaaf0ff1413a31781bce1f647cd 100644
 --- a/dist/index.js

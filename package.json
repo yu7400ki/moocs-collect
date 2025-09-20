@@ -12,10 +12,5 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "npm-run-all2": "^8.0.4"
-  },
-  "pnpm": {
-    "patchedDependencies": {
-      "@park-ui/panda-preset": "patches/@park-ui__panda-preset.patch"
-    }
   }
 }
