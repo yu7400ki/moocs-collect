@@ -3,6 +3,7 @@ import { ChevronRightIcon, ExternalLinkIcon } from "lucide-react";
 import { useCallback, useTransition } from "react";
 import { css } from "styled-system/css";
 import { Box, HStack, VStack } from "styled-system/jsx";
+import { IconButton } from "@/components/ui/icon-button";
 import { Text } from "@/components/ui/text";
 import type { HighlightedText, SlideSearchEntry } from "../services/search";
 
@@ -51,31 +52,12 @@ export function SearchResultItem({ entry }: SearchResultItemProps) {
   };
 
   return (
-    <button
-      type="button"
-      className={css({
-        p: 4,
-        bg: "bg.default",
-        border: "1px solid",
-        borderColor: "border.subtle",
-        rounded: "l2",
-        transition: "background-color 0.2s",
-        textAlign: "left",
-        _hover: {
-          bg: "bg.canvas",
-        },
-        _focusVisible: {
-          outline: "2px solid",
-          outlineColor: "colorPalette.default",
-          outlineOffset: "2px",
-        },
-        "&[data-path]": {
-          cursor: "pointer",
-        },
-      })}
-      onClick={handleOpenSlide}
-      disabled={isPending}
-      data-path={entry.downloadPath}
+    <Box
+      p="4"
+      bg="bg.default"
+      border="1px solid"
+      borderColor="border.subtle"
+      rounded="l2"
     >
       <VStack gap="3" alignItems="stretch">
         <VStack gap="1" alignItems="flex-start">
@@ -87,13 +69,15 @@ export function SearchResultItem({ entry }: SearchResultItemProps) {
               {entry.courseName}
             </Box>
             {entry.downloadPath && (
-              <ExternalLinkIcon
-                className={css({
-                  ml: "auto",
-                  h: "1em",
-                  w: "1em",
-                })}
-              />
+              <IconButton
+                onClick={handleOpenSlide}
+                variant="ghost"
+                disabled={isPending}
+                size="sm"
+                ml="auto"
+              >
+                <ExternalLinkIcon />
+              </IconButton>
             )}
           </HStack>
           <HStack gap="2" fontSize="sm">
@@ -119,6 +103,6 @@ export function SearchResultItem({ entry }: SearchResultItemProps) {
           </Text>
         </Box>
       </VStack>
-    </button>
+    </Box>
   );
 }
