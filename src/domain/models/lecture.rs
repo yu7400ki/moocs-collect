@@ -41,6 +41,12 @@ pub struct LectureGroupBuilder {
     index: Option<usize>,
 }
 
+impl Default for LectureGroupBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl LectureGroupBuilder {
     pub fn new() -> Self {
         Self {
@@ -118,6 +124,12 @@ pub struct LectureBuilder {
     key: Option<LectureKey>,
     name: Option<String>,
     index: Option<usize>,
+}
+
+impl Default for LectureBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl LectureBuilder {

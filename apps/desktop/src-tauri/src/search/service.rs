@@ -64,7 +64,7 @@ impl SearchService {
         let text = slide_content.get_texts().join("\n");
 
         let page_key = &slide_content.page_key;
-        let facet_path = format!("/{}/{}", page_key, index);
+        let facet_path = format!("/{page_key}/{index}");
         let facet_value = Facet::from(&facet_path);
         index_writer.delete_term(Term::from_facet(schema.facet, &facet_value));
         let doc = doc!(
@@ -137,7 +137,7 @@ impl SearchService {
             if content_snippet.trim().is_empty() {
                 content_snippet = if content_raw.chars().count() > 200 {
                     let truncated: String = content_raw.chars().take(200).collect();
-                    format!("{}...", truncated)
+                    format!("{truncated}...")
                 } else {
                     content_raw
                 };
@@ -160,12 +160,10 @@ impl TryFrom<&AppHandle> for SearchService {
     type Error = SearchError;
 
     fn try_from(app: &AppHandle) -> Result<Self, Self::Error> {
-        let app_data_dir = app.path().app_data_dir().map_err(|e| {
-            std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("Failed to get app data dir: {}", e),
-            )
-        })?;
+        let app_data_dir = app
+            .path()
+            .app_data_dir()
+            .map_err(|e| std::io::Error::other(format!("Failed to get app data dir: {e}")))?;
         let index_path = app_data_dir.join("search_index");
         Self::new(index_path)
     }

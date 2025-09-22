@@ -144,7 +144,7 @@ impl CourseRepository for CourseRepositoryImpl {
             }
         }
 
-        years.sort_by(|a, b| b.value().cmp(&a.value()));
+        years.sort_by_key(|b| std::cmp::Reverse(b.value()));
         years.dedup();
 
         Ok(years)

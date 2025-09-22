@@ -39,6 +39,12 @@ pub struct CourseBuilder {
     index: Option<usize>,
 }
 
+impl Default for CourseBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CourseBuilder {
     pub fn new() -> Self {
         Self {

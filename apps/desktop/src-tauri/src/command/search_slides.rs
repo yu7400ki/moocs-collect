@@ -73,8 +73,13 @@ async fn enrich_results(
             score,
         } = result;
 
-        let (fallback_year, fallback_course, fallback_lecture, fallback_page, slide_idx) =
-            split_facet_path(&facet);
+        let FacetPath {
+            year: fallback_year,
+            course: fallback_course,
+            lecture: fallback_lecture,
+            page: fallback_page,
+            index: slide_idx,
+        } = split_facet_path(&facet);
 
         let row = sqlx::query(
             r#"
@@ -146,15 +151,15 @@ async fn enrich_results(
     Ok(enriched)
 }
 
-fn split_facet_path(
-    facet: &str,
-) -> (
-    Option<u32>,
-    Option<&str>,
-    Option<&str>,
-    Option<&str>,
-    Option<u32>,
-) {
+struct FacetPath<'a> {
+    year: Option<u32>,
+    course: Option<&'a str>,
+    lecture: Option<&'a str>,
+    page: Option<&'a str>,
+    index: Option<u32>,
+}
+
+fn split_facet_path(facet: &str) -> FacetPath<'_> {
     let trimmed = facet.trim_start_matches('/');
     let mut parts = trimmed.split('/');
 
@@ -164,5 +169,11 @@ fn split_facet_path(
     let page = parts.next();
     let index = parts.next().and_then(|part| part.parse::<u32>().ok());
 
-    (year, course, lecture, page, index)
+    FacetPath {
+        year,
+        course,
+        lecture,
+        page,
+        index,
+    }
 }

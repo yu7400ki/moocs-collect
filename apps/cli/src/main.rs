@@ -148,7 +148,7 @@ async fn save_slides<P: AsRef<Path> + Sync>(
                 ),
             };
 
-            let mut pdf = pdf::convert(&content)?;
+            let mut pdf = pdf::convert(content)?;
             let file_path = path.join(&filename);
             pdf.save(&file_path)?;
             Ok(())
@@ -158,7 +158,7 @@ async fn save_slides<P: AsRef<Path> + Sync>(
 
 async fn save_slides_from_pages<P: AsRef<Path> + Sync>(
     collect: &Collect,
-    pages: &Vec<LecturePage>,
+    pages: &[LecturePage],
     path: P,
 ) -> anyhow::Result<()> {
     let slides = futures::future::join_all(pages.iter().map(|page| collect.get_slides(&page.key)))
@@ -182,7 +182,7 @@ async fn save_slides_from_pages<P: AsRef<Path> + Sync>(
     futures::future::join_all(
         contents
             .iter()
-            .map(|contents| save_slides(&collect, &contents, &path)),
+            .map(|contents| save_slides(collect, contents, &path)),
     )
     .await
     .into_iter()
@@ -237,7 +237,7 @@ async fn main() -> anyhow::Result<()> {
     let courses = {
         let s = Spinner::new();
         s.set_message("科目を取得中...");
-        let year = args.year.map(|y| Year::new(y)).transpose()?;
+        let year = args.year.map(Year::new).transpose()?;
         collect.get_courses(year).await?
     };
 
@@ -259,7 +259,7 @@ async fn main() -> anyhow::Result<()> {
             let bar = ProgressBar::new(lectures.len() as u64);
             bar.set_style(progress_template.clone());
             for lecture in lectures.iter() {
-                bar.set_message(format!("{}", lecture.display_name()));
+                bar.set_message(lecture.display_name().to_string());
                 let pages = collect.get_pages(&lecture.key).await?;
                 save_slides_from_pages(&collect, &pages, &path).await?;
                 bar.inc(1);
@@ -293,7 +293,7 @@ async fn main() -> anyhow::Result<()> {
         let bar = ProgressBar::new(lectures.len() as u64);
         bar.set_style(progress_template.clone());
         for lecture in lectures.iter() {
-            bar.set_message(format!("{}", lecture.display_name()));
+            bar.set_message(lecture.display_name().to_string());
             let pages = collect.get_pages(&lecture.key).await?;
             save_slides_from_pages(&collect, &pages, &path).await?;
             bar.inc(1);

@@ -44,7 +44,7 @@ impl PageService for PageServiceImpl {
             .into_iter()
             .find(|page| page.key == *page_key)
             .ok_or_else(|| {
-                crate::error::CollectError::not_found(format!("Page not found: {}", page_key))
+                crate::error::CollectError::not_found(format!("Page not found: {page_key}"))
             })
     }
 }

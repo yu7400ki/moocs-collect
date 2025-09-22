@@ -74,9 +74,9 @@ pub async fn get_lectures(
     let collect = &state.collect;
 
     let year_obj = Year::new(year)
-        .map_err(|e| LectureError::InvalidInput(format!("Invalid year {}: {}", year, e)))?;
+        .map_err(|e| LectureError::InvalidInput(format!("Invalid year {year}: {e}")))?;
     let course_slug_obj = CourseSlug::new(course_slug.clone()).map_err(|e| {
-        LectureError::InvalidInput(format!("Invalid course slug '{}': {}", course_slug, e))
+        LectureError::InvalidInput(format!("Invalid course slug '{course_slug}': {e}"))
     })?;
     let course_key = CourseKey::new(year_obj, course_slug_obj);
 

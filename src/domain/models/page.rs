@@ -39,6 +39,12 @@ pub struct LecturePageBuilder {
     index: Option<usize>,
 }
 
+impl Default for LecturePageBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl LecturePageBuilder {
     pub fn new() -> Self {
         Self {

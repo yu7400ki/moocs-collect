@@ -24,6 +24,7 @@ impl UnicodeNormalizer {
 }
 
 #[derive(Clone, Debug, Copy, PartialEq)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum Kind {
     /// Normalization Form Canonical Composition.
     NFC,

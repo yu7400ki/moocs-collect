@@ -11,9 +11,9 @@ pub enum Mime {
     Avif,
 }
 
-impl Into<&'static str> for Mime {
-    fn into(self) -> &'static str {
-        match self {
+impl From<Mime> for &'static str {
+    fn from(val: Mime) -> Self {
+        match val {
             Mime::Svg => "image/svg+xml",
             Mime::Png => "image/png",
             Mime::Jpeg => "image/jpeg",

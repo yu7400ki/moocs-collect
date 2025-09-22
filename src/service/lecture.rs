@@ -63,7 +63,7 @@ impl LectureService for LectureServiceImpl {
             .into_iter()
             .find(|lecture| lecture.key == *lecture_key)
             .ok_or_else(|| {
-                crate::error::CollectError::not_found(format!("Lecture not found: {}", lecture_key))
+                crate::error::CollectError::not_found(format!("Lecture not found: {lecture_key}"))
             })
     }
 }

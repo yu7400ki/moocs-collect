@@ -45,8 +45,7 @@ pub async fn get_courses(
 
     let year_param = year
         .map(|y| {
-            Year::new(y)
-                .map_err(|e| CourseError::InvalidInput(format!("Invalid year {}: {}", y, e)))
+            Year::new(y).map_err(|e| CourseError::InvalidInput(format!("Invalid year {y}: {e}")))
         })
         .transpose()?;
 

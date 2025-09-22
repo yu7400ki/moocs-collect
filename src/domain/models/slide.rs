@@ -32,6 +32,12 @@ pub struct SlideBuilder {
     index: Option<usize>,
 }
 
+impl Default for SlideBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SlideBuilder {
     pub fn new() -> Self {
         Self {

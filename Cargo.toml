@@ -38,3 +38,22 @@ futures = "0.3.31"
 rayon = "1.10.0"
 bitflags = "2.9.0"
 thiserror = "2.0"
+
+[workspace.lints.clippy]
+# まずは基本セットを警告に
+all      = "warn"
+# 過激すぎるものもあるので pedantic/nursery は様子見で warn
+pedantic = { level = "warn", priority = 0 }
+nursery  = { level = "warn", priority = 0 }
+# “制限系(restriction)” はまず無効。必要な個別ルールだけ下で明示許可/禁止
+restriction = "allow"
+
+# 事故りやすいものは個別に厳しく（グループより優先）
+unwrap_used   = { level = "deny", priority = 2 }
+expect_used   = { level = "deny", priority = 2 }
+panic         = { level = "deny", priority = 2 }
+todo          = { level = "deny", priority = 2 }
+unimplemented = { level = "deny", priority = 2 }
+dbg_macro     = { level = "deny", priority = 2 }
+print_stdout  = { level = "deny", priority = 2 }
+print_stderr  = { level = "deny", priority = 2 }

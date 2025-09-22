@@ -59,6 +59,7 @@ export const queueAtom = atom(
             : typeof error === "string"
               ? error
               : "Unknown error";
+        console.error("Download error:", reason);
         set(errorQueue, (prev) => {
           const next = new Set(prev);
           next.add({ ...downloadItem, reason });

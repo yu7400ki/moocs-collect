@@ -16,7 +16,7 @@ pub fn extract_element_attribute(elm: &ElementRef, query: &str, attribute: &str)
         .ok_or_else(|| {
             CollectError::parse(
                 "Element or attribute not found",
-                Some(format!("query: {}, attribute: {}", query, attribute)),
+                Some(format!("query: {query}, attribute: {attribute}")),
             )
         })
 }
@@ -28,7 +28,7 @@ pub fn extract_text_content(elm: &ElementRef, query: &str) -> Result<String> {
     elm.select(&selector)
         .next()
         .map(|element| element.text().collect())
-        .ok_or_else(|| CollectError::parse("Element not found", Some(format!("query: {}", query))))
+        .ok_or_else(|| CollectError::parse("Element not found", Some(format!("query: {query}"))))
 }
 
 pub fn parse_selector(query: &str) -> Result<Selector> {

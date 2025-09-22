@@ -38,13 +38,19 @@ impl serde::Serialize for DownloadError {
     }
 }
 
-#[tauri::command]
-pub async fn download_slides(
-    app: tauri::AppHandle,
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DownloadParams {
     year: u32,
     course_slug: String,
     lecture_slug: String,
     page_slug: String,
+}
+
+#[tauri::command]
+pub async fn download_slides(
+    app: tauri::AppHandle,
+    params: DownloadParams,
     collect_state: State<'_, CollectState>,
     search_state: State<'_, SearchState>,
     db_state: State<'_, DbState>,
@@ -52,16 +58,19 @@ pub async fn download_slides(
     let collect = &collect_state.collect;
 
     // Build the page key with better error messages
-    let year_obj = Year::new(year)
-        .map_err(|e| DownloadError::InvalidInput(format!("Invalid year {}: {}", year, e)))?;
-    let course_slug_obj = CourseSlug::new(course_slug.clone()).map_err(|e| {
-        DownloadError::InvalidInput(format!("Invalid course slug '{}': {}", course_slug, e))
+    let year_obj = Year::new(params.year)
+        .map_err(|e| DownloadError::InvalidInput(format!("Invalid year {}: {e}", params.year)))?;
+    let course_slug_obj = CourseSlug::new(params.course_slug.clone()).map_err(|e| {
+        DownloadError::InvalidInput(format!("Invalid course slug '{}': {e}", params.course_slug))
     })?;
-    let lecture_slug_obj = LectureSlug::new(lecture_slug.clone()).map_err(|e| {
-        DownloadError::InvalidInput(format!("Invalid lecture slug '{}': {}", lecture_slug, e))
+    let lecture_slug_obj = LectureSlug::new(params.lecture_slug.clone()).map_err(|e| {
+        DownloadError::InvalidInput(format!(
+            "Invalid lecture slug '{}': {e}",
+            params.lecture_slug
+        ))
     })?;
-    let page_slug_obj = PageSlug::new(page_slug.clone()).map_err(|e| {
-        DownloadError::InvalidInput(format!("Invalid page slug '{}': {}", page_slug, e))
+    let page_slug_obj = PageSlug::new(params.page_slug.clone()).map_err(|e| {
+        DownloadError::InvalidInput(format!("Invalid page slug '{}': {e}", params.page_slug))
     })?;
 
     let course_key = CourseKey::new(year_obj, course_slug_obj);
@@ -81,7 +90,7 @@ pub async fn download_slides(
         &download_dir,
         course_info.display_name(),
         lecture_info.display_name(),
-        year,
+        params.year,
     );
 
     let slides = collect.get_slides(&page_key).await?;
@@ -125,7 +134,7 @@ pub async fn download_slides(
     let search_service = search_state.0.read().await;
     for (idx, content) in contents.iter().enumerate() {
         if let Err(e) = search_service.index_slide_content(content, idx).await {
-            log::warn!("Failed to index slide content ({}): {}", idx, e);
+            log::warn!("Failed to index slide content ({idx}): {e}");
         }
     }
 
@@ -139,7 +148,7 @@ pub async fn download_slides(
 fn get_download_dir(app: &tauri::AppHandle) -> Result<std::path::PathBuf, DownloadError> {
     let store = app
         .store("store.json")
-        .map_err(|e| DownloadError::Store(format!("Failed to access store: {}", e)))?;
+        .map_err(|e| DownloadError::Store(format!("Failed to access store: {e}")))?;
 
     let download_dir = store
         .get("settings")
@@ -178,9 +187,9 @@ fn get_lecture_dir_from_info<P: AsRef<std::path::Path>>(
 ) -> std::path::PathBuf {
     download_dir
         .as_ref()
-        .join(&sanitize_filename(&year.to_string()))
-        .join(&sanitize_filename(course_name))
-        .join(&sanitize_filename(lecture_name))
+        .join(sanitize_filename(&year.to_string()))
+        .join(sanitize_filename(course_name))
+        .join(sanitize_filename(lecture_name))
 }
 
 fn save_slides<P: AsRef<std::path::Path>>(
@@ -191,21 +200,22 @@ fn save_slides<P: AsRef<std::path::Path>>(
 ) -> Result<Vec<PathBuf>, DownloadError> {
     assert_eq!(slides.len(), contents.len());
     let path = lecture_path.as_ref();
-    std::fs::create_dir_all(&path).map_err(DownloadError::Io)?;
+    std::fs::create_dir_all(path).map_err(DownloadError::Io)?;
 
     let mut saved_paths = Vec::with_capacity(slides.len());
     for (index, content) in contents.iter().enumerate() {
         let filename = match slides.len() {
-            1 => format!("{}.pdf", page_title),
+            1 => format!("{page_title}.pdf"),
             _ => format!("{} ({}).pdf", page_title, index + 1),
         };
         let mut pdf = pdf::convert(content)?;
-        let file_path = path.join(&sanitize_filename(&filename));
+        let file_path = path.join(sanitize_filename(&filename));
         pdf.save(&file_path).map_err(|e| {
-            DownloadError::Io(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("Failed to save PDF to {}: {}", file_path.display(), e),
-            ))
+            DownloadError::Io(std::io::Error::other(format!(
+                "Failed to save PDF to {}: {}",
+                file_path.display(),
+                e
+            )))
         })?;
         saved_paths.push(file_path);
     }

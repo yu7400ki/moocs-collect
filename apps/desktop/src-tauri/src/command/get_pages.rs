@@ -54,12 +54,12 @@ pub async fn get_pages(
     let collect = &state.collect;
 
     let year_obj = Year::new(year)
-        .map_err(|e| PageError::InvalidInput(format!("Invalid year {}: {}", year, e)))?;
+        .map_err(|e| PageError::InvalidInput(format!("Invalid year {year}: {e}")))?;
     let course_slug_obj = CourseSlug::new(course_slug.clone()).map_err(|e| {
-        PageError::InvalidInput(format!("Invalid course slug '{}': {}", course_slug, e))
+        PageError::InvalidInput(format!("Invalid course slug '{course_slug}': {e}"))
     })?;
     let lecture_slug_obj = LectureSlug::new(lecture_slug.clone()).map_err(|e| {
-        PageError::InvalidInput(format!("Invalid lecture slug '{}': {}", lecture_slug, e))
+        PageError::InvalidInput(format!("Invalid lecture slug '{lecture_slug}': {e}"))
     })?;
 
     let course_key = CourseKey::new(year_obj, course_slug_obj);

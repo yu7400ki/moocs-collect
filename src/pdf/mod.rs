@@ -187,7 +187,7 @@ impl PreProcessor {
         let mime = Mime::try_from(bytes)?;
         let mime: &str = mime.into();
         let base64 = general_purpose::STANDARD.encode(bytes);
-        Ok(format!("data:{};base64,{}", mime, base64))
+        Ok(format!("data:{mime};base64,{base64}"))
     }
 }
 

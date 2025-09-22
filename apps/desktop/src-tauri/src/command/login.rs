@@ -45,10 +45,10 @@ pub async fn login(
 
     if logged_in && remember {
         let entry = Entry::new("me.yu7400ki.moocs-collect", &credentials.username)
-            .map_err(|e| LoginError::Keyring(format!("Failed to create keyring entry: {}", e)))?;
+            .map_err(|e| LoginError::Keyring(format!("Failed to create keyring entry: {e}")))?;
         entry
             .set_password(&credentials.password)
-            .map_err(|e| LoginError::Keyring(format!("Failed to store password: {}", e)))?;
+            .map_err(|e| LoginError::Keyring(format!("Failed to store password: {e}")))?;
     }
 
     Ok(logged_in)

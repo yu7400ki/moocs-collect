@@ -11,7 +11,7 @@ pub enum CollectError {
     #[error("Authentication failed: {reason}")]
     Authentication { reason: String },
 
-    #[error("Parse error: {message}{}", context.as_ref().map(|c| format!(" ({})", c)).unwrap_or_default())]
+    #[error("Parse error: {message}{}", context.as_ref().map(|c| format!(" ({c})")).unwrap_or_default())]
     Parse {
         message: String,
         context: Option<String>,
@@ -149,7 +149,7 @@ impl From<std::io::Error> for CollectError {
 impl From<lopdf::Error> for CollectError {
     fn from(error: lopdf::Error) -> Self {
         CollectError::PdfGeneration {
-            message: format!("PDF error: {}", error),
+            message: format!("PDF error: {error}"),
         }
     }
 }
@@ -157,7 +157,7 @@ impl From<lopdf::Error> for CollectError {
 impl From<regex::Error> for CollectError {
     fn from(error: regex::Error) -> Self {
         CollectError::Parse {
-            message: format!("Regex error: {}", error),
+            message: format!("Regex error: {error}"),
             context: None,
         }
     }

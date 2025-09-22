@@ -67,12 +67,13 @@ impl PageRepositoryImpl {
 
         let current_page_key = self.parse_page_key_from_url(current_url, lecture_key)?;
         let mut pages = Vec::new();
-        let mut index = 0;
 
-        for li in &pagination_items[1..pagination_items.len() - 1] {
+        for (index, li) in pagination_items[1..pagination_items.len() - 1]
+            .iter()
+            .enumerate()
+        {
             let page = self.extract_page_from_element(li, lecture_key, &current_page_key, index)?;
             pages.push(page);
-            index += 1;
         }
 
         Ok(pages)

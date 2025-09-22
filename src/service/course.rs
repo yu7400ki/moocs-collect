@@ -44,7 +44,7 @@ impl CourseService for CourseServiceImpl {
             .into_iter()
             .find(|course| course.key == *course_key)
             .ok_or_else(|| {
-                crate::error::CollectError::not_found(format!("Course not found: {}", course_key))
+                crate::error::CollectError::not_found(format!("Course not found: {course_key}"))
             })
     }
 
