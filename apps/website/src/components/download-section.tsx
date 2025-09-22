@@ -1,31 +1,51 @@
 ﻿"use client";
 
-import type { LatestRelease } from "../types/release";
-import { detectUserOS } from "../utils/detect-os";
+import { useEffect, useState } from "react";
+import type { LatestRelease, Platform } from "../types/release";
+import { type DetectedOS, detectUserOS } from "../utils/detect-os";
 import { DownloadButton } from "./download-button";
 
 type Props = {
   latestRelease: LatestRelease;
 };
 
+type FetchState<T> =
+  | {
+      state: "loading";
+    }
+  | {
+      state: "fulfilled";
+      data: T;
+    }
+  | {
+      state: "rejected";
+      error: unknown;
+    };
+
 export function DownloadSection({ latestRelease }: Props) {
-  const userOS = detectUserOS();
+  const [userOS, setUserOS] = useState<FetchState<DetectedOS | null>>({
+    state: "loading",
+  });
 
-  const platforms = Object.entries(latestRelease.platforms);
-  const primaryPlatformKey =
-    userOS && Object.hasOwn(latestRelease.platforms, userOS) ? userOS : null;
+  useEffect(() => {
+    if (userOS.state !== "loading") return;
+    detectUserOS()
+      .then((os) => {
+        setUserOS({ state: "fulfilled", data: os });
+      })
+      .catch((error) => {
+        setUserOS({ state: "rejected", error });
+      });
+  }, [userOS]);
+
   const primaryPlatform =
-    primaryPlatformKey !== null
-      ? {
-          platform: primaryPlatformKey,
-          ...latestRelease.platforms[primaryPlatformKey],
-        }
-      : null;
+    userOS.state === "fulfilled" && userOS.data
+      ? Object.entries(getPrimaryPlatformFromOS(latestRelease, userOS.data))
+      : [];
 
-  const displayPlatforms =
-    primaryPlatformKey !== null
-      ? platforms.filter(([platform]) => platform !== primaryPlatformKey)
-      : platforms;
+  const displayPlatforms = Object.entries(latestRelease.platforms).filter(
+    ([platform]) => !primaryPlatform.some(([p]) => p === platform),
+  );
 
   const publishedAt = new Date(latestRelease.pub_date).toLocaleDateString(
     "ja-JP",
@@ -43,18 +63,19 @@ export function DownloadSection({ latestRelease }: Props) {
           </p>
           <p className="text-sm text-slate-400">最終更新 {publishedAt}</p>
         </div>
-        {primaryPlatform && (
+        {primaryPlatform.map(([platform, { url }]) => (
           <DownloadButton
-            platform={primaryPlatform.platform}
-            url={primaryPlatform.url}
+            key={platform}
+            platform={platform}
+            url={url}
             isPrimary
           />
-        )}
+        ))}
       </div>
 
       <div className="space-y-4">
         <p className="text-sm text-slate-300">
-          {primaryPlatform
+          {primaryPlatform.length > 0
             ? "他のプラットフォームはこちら"
             : "ご利用の環境に合わせてダウンロードしてください"}
         </p>
@@ -75,4 +96,51 @@ export function DownloadSection({ latestRelease }: Props) {
       )}
     </section>
   );
+}
+
+function getPrimaryPlatformFromOS(
+  release: LatestRelease,
+  os: DetectedOS,
+): Record<string, Platform> {
+  let platforms: [string, Platform][];
+  switch (os.os) {
+    case "Windows":
+      platforms = Object.hasOwn(release.platforms, "windows-x86_64")
+        ? Object.entries(release.platforms).filter(
+            ([platform]) => platform === "windows-x86_64",
+          )
+        : [];
+      break;
+    case "macOS":
+      if (os.arch === "arm") {
+        platforms = Object.hasOwn(release.platforms, "darwin-aarch64")
+          ? Object.entries(release.platforms).filter(
+              ([platform]) => platform === "darwin-aarch64",
+            )
+          : [];
+      } else if (os.arch === "x86") {
+        platforms = Object.hasOwn(release.platforms, "darwin-x86_64")
+          ? Object.entries(release.platforms).filter(
+              ([platform]) => platform === "darwin-x86_64",
+            )
+          : [];
+      } else {
+        platforms = Object.entries(release.platforms).filter(([platform]) =>
+          platform.startsWith("darwin"),
+        );
+      }
+      break;
+    case "Linux":
+      platforms = Object.hasOwn(release.platforms, "linux-x86_64")
+        ? Object.entries(release.platforms).filter(
+            ([platform]) => platform === "linux-x86_64",
+          )
+        : [];
+      break;
+    default:
+      platforms = [];
+      break;
+  }
+
+  return Object.fromEntries(platforms);
 }

@@ -1,4 +1,4 @@
-interface Platform {
+export interface Platform {
   signature: string;
   url: string;
 }

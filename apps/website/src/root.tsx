@@ -78,11 +78,11 @@ export async function Root(_: { url: URL }) {
                     <div className="flex items-center gap-3 text-slate-200">
                       <Download className="h-5 w-5 text-sky-300" />
                       <p className="text-base font-semibold">
-                        常に最新を自動取得
+                        効率的なスライド取得
                       </p>
                     </div>
                     <p className="text-sm leading-relaxed text-slate-400">
-                      最新のスライドを自動でダウンロード。毎回サイトを巡回する作業から解放されます。
+                      必要なスライドを簡単にダウンロード。手動での作業を効率化できます。
                     </p>
                   </div>
                   <div className="space-y-3">

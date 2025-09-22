@@ -1,6 +1,5 @@
 ﻿import { penguin } from "@lucide/lab";
 import { Apple, Download, Grid2X2, Icon } from "lucide-react";
-import { getPlatformDisplayName } from "../utils/detect-os";
 
 interface DownloadButtonProps {
   platform: string;
@@ -42,4 +41,15 @@ function PlatformIcon({ platform }: { platform: string }) {
     default:
       return <Download className={iconClass} />;
   }
+}
+
+function getPlatformDisplayName(platform: string): string {
+  const names: Record<string, string> = {
+    "windows-x86_64": "Windows",
+    "darwin-x86_64": "macOS (Intel)",
+    "darwin-aarch64": "macOS (Apple Silicon)",
+    "linux-x86_64": "Linux",
+  };
+
+  return names[platform] || platform;
 }

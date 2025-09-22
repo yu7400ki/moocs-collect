@@ -1,39 +1,74 @@
-export function detectUserOS() {
+export type DetectedOS =
+  | {
+      os: "Windows" | "macOS" | "Linux";
+      arch: "arm" | "x86" | null;
+    }
+  | {
+      os: null;
+      arch: null;
+    };
+
+export async function detectUserOS(): Promise<DetectedOS | null> {
   if (typeof window === "undefined") return null;
 
+  if (navigator?.userAgentData?.getHighEntropyValues) {
+    const platform = navigator.userAgentData.platform;
+    const hi = await navigator.userAgentData.getHighEntropyValues([
+      "architecture",
+    ]);
+    if (platform.includes("Win")) {
+      return {
+        os: "Windows",
+        arch: hi.architecture === "x86" ? "x86" : null,
+      };
+    }
+    if (platform.includes("Mac")) {
+      return {
+        os: "macOS",
+        arch:
+          hi.architecture === "arm" || hi.architecture === "arm64"
+            ? "arm"
+            : hi.architecture === "x86" || hi.architecture === "x86_64"
+              ? "x86"
+              : null,
+      };
+    }
+    if (platform.includes("Linux")) {
+      return {
+        os: "Linux",
+        arch: hi.architecture === "x86" ? "x86" : null,
+      };
+    }
+  }
+
   const userAgent = window.navigator.userAgent;
-  const platform = window.navigator.platform;
 
   // Windows
-  if (userAgent.includes("Windows") || platform.includes("Win")) {
-    return "windows-x86_64";
+  if (userAgent.includes("Windows")) {
+    return {
+      os: "Windows",
+      arch: "x86",
+    };
   }
 
   // macOS
-  if (userAgent.includes("Mac") || platform.includes("Mac")) {
-    // Check for Apple Silicon
-    if (userAgent.includes("Intel")) {
-      return "darwin-x86_64";
-    }
-    // Modern Macs are likely Apple Silicon
-    return "darwin-aarch64";
+  if (userAgent.includes("Mac")) {
+    return {
+      os: "macOS",
+      arch: null,
+    };
   }
 
   // Linux
-  if (userAgent.includes("Linux") || platform.includes("Linux")) {
-    return "linux-x86_64";
+  if (userAgent.includes("Linux")) {
+    return {
+      os: "Linux",
+      arch: "x86",
+    };
   }
 
-  return null;
-}
-
-export function getPlatformDisplayName(platform: string): string {
-  const names: Record<string, string> = {
-    "windows-x86_64": "Windows",
-    "darwin-x86_64": "macOS (Intel)",
-    "darwin-aarch64": "macOS (Apple Silicon)",
-    "linux-x86_64": "Linux",
+  return {
+    os: null,
+    arch: null,
   };
-
-  return names[platform] || platform;
 }
