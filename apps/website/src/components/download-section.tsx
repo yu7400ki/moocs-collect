@@ -63,14 +63,18 @@ export function DownloadSection({ latestRelease }: Props) {
           </p>
           <p className="text-sm text-slate-400">最終更新 {publishedAt}</p>
         </div>
-        {primaryPlatform.map(([platform, { url }]) => (
-          <DownloadButton
-            key={platform}
-            platform={platform}
-            url={url}
-            isPrimary
-          />
-        ))}
+        {primaryPlatform.length > 0 && (
+          <div className="flex flex-wrap gap-3">
+            {primaryPlatform.map(([platform, { url }]) => (
+              <DownloadButton
+                key={platform}
+                platform={platform}
+                url={url}
+                isPrimary
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="space-y-4">
