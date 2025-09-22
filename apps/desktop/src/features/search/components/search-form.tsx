@@ -153,6 +153,8 @@ export function SearchForm() {
               data={filter}
               value={selected}
               onValueChange={setSelected}
+              maxH="80vh"
+              overflowY="auto"
             />
           </Popover.Content>
         </Popover.Positioner>
