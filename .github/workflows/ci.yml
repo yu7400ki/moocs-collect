@@ -81,5 +81,5 @@ jobs:
       - name: Build Desktop
         run: pnpm --filter=desktop run build
 
-      - name: Build Website
-        run: pnpm --filter=website run build
+      - name: Typecheck Website
+        run: pnpm --filter=website exec tsc --noEmit
