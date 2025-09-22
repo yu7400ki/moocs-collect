@@ -24,7 +24,7 @@ export type SlideSearchEntry = {
   courseName: string;
   lectureName: string;
   pageName: string;
-  downloadPath: string;
+  downloadPath?: string;
 };
 
 export const searchSlides = createCommand<SearchSlidesArgs, SlideSearchEntry[]>(

@@ -14,8 +14,12 @@ export function SearchResultItem({ entry }: SearchResultItemProps) {
   const [isPending, startTransition] = useTransition();
 
   const handleOpenSlide = useCallback(() => {
-    startTransition(() => {
-      openPath(entry.downloadPath);
+    if (!entry.downloadPath) {
+      return;
+    }
+    const path = entry.downloadPath;
+    startTransition(async () => {
+      await openPath(path);
     });
   }, [entry.downloadPath]);
 
@@ -56,7 +60,6 @@ export function SearchResultItem({ entry }: SearchResultItemProps) {
         borderColor: "border.subtle",
         rounded: "l2",
         transition: "background-color 0.2s",
-        cursor: "pointer",
         textAlign: "left",
         _hover: {
           bg: "bg.canvas",
@@ -66,9 +69,13 @@ export function SearchResultItem({ entry }: SearchResultItemProps) {
           outlineColor: "colorPalette.default",
           outlineOffset: "2px",
         },
+        "&[data-path]": {
+          cursor: "pointer",
+        },
       })}
       onClick={handleOpenSlide}
       disabled={isPending}
+      data-path={entry.downloadPath}
     >
       <VStack gap="3" alignItems="stretch">
         <VStack gap="1" alignItems="flex-start">
@@ -79,13 +86,15 @@ export function SearchResultItem({ entry }: SearchResultItemProps) {
             <Box color="fg.muted" fontSize="sm">
               {entry.courseName}
             </Box>
-            <ExternalLinkIcon
-              className={css({
-                ml: "auto",
-                h: "1em",
-                w: "1em",
-              })}
-            />
+            {entry.downloadPath && (
+              <ExternalLinkIcon
+                className={css({
+                  ml: "auto",
+                  h: "1em",
+                  w: "1em",
+                })}
+              />
+            )}
           </HStack>
           <HStack gap="2" fontSize="sm">
             <Box color="fg.muted">{entry.lectureName}</Box>
