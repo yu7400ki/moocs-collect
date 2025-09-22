@@ -16,13 +16,13 @@ export async function detectUserOS(): Promise<DetectedOS | null> {
     const hi = await navigator.userAgentData.getHighEntropyValues([
       "architecture",
     ]);
-    if (platform.includes("Win")) {
+    if (/win/i.test(platform)) {
       return {
         os: "Windows",
         arch: hi.architecture === "x86" ? "x86" : null,
       };
     }
-    if (platform.includes("Mac")) {
+    if (/mac/i.test(platform)) {
       return {
         os: "macOS",
         arch:
@@ -33,7 +33,7 @@ export async function detectUserOS(): Promise<DetectedOS | null> {
               : null,
       };
     }
-    if (platform.includes("Linux")) {
+    if (/linux/i.test(platform)) {
       return {
         os: "Linux",
         arch: hi.architecture === "x86" ? "x86" : null,
