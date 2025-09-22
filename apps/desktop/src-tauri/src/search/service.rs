@@ -40,7 +40,7 @@ pub struct SearchService {
 }
 
 impl SearchService {
-    pub fn with_index_path(index_path: PathBuf) -> Result<Self, SearchError> {
+    pub fn new(index_path: PathBuf) -> Result<Self, SearchError> {
         let index_manager = IndexManager::new(index_path)?;
         let reader = index_manager
             .index
@@ -51,17 +51,6 @@ impl SearchService {
             index_manager,
             reader,
         })
-    }
-
-    pub fn from_app_handle(app: &AppHandle) -> Result<Self, SearchError> {
-        let app_data_dir = app.path().app_data_dir().map_err(|e| {
-            std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("Failed to get app data dir: {}", e),
-            )
-        })?;
-        let index_path = app_data_dir.join("search_index");
-        Self::with_index_path(index_path)
     }
 
     pub async fn index_slide_content(
@@ -87,6 +76,11 @@ impl SearchService {
         );
         index_writer.add_document(doc)?;
         index_writer.commit()?;
+        Ok(())
+    }
+
+    pub fn purge_index(&self) -> Result<(), SearchError> {
+        self.index_manager.purge_index()?;
         Ok(())
     }
 
@@ -159,5 +153,20 @@ impl SearchService {
         }
 
         Ok(results)
+    }
+}
+
+impl TryFrom<&AppHandle> for SearchService {
+    type Error = SearchError;
+
+    fn try_from(app: &AppHandle) -> Result<Self, Self::Error> {
+        let app_data_dir = app.path().app_data_dir().map_err(|e| {
+            std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Failed to get app data dir: {}", e),
+            )
+        })?;
+        let index_path = app_data_dir.join("search_index");
+        Self::new(index_path)
     }
 }

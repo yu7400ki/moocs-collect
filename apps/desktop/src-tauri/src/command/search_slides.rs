@@ -1,11 +1,14 @@
 use sqlx::{Row, SqlitePool};
 use tauri::State;
 
-use crate::search::{
-    types::{SearchOptions, SearchResult},
-    SearchError,
-};
 use crate::state::SearchState;
+use crate::{
+    search::{
+        types::{SearchOptions, SearchResult},
+        SearchError,
+    },
+    state::DbState,
+};
 
 #[derive(Debug, thiserror::Error)]
 pub enum SearchSlidesError {
@@ -32,7 +35,7 @@ pub struct SlideSearchEntry {
     pub course_name: String,
     pub lecture_name: String,
     pub page_name: String,
-    pub download_path: String,
+    pub download_path: Option<String>,
 }
 
 #[tauri::command]
@@ -40,19 +43,19 @@ pub async fn search_slides(
     query: String,
     filters: Vec<String>,
     search_state: State<'_, SearchState>,
-    db_pool: State<'_, SqlitePool>,
+    db_state: State<'_, DbState>,
 ) -> Result<Vec<SlideSearchEntry>, SearchSlidesError> {
-    let search_service = &search_state.0;
-
     let search_options = SearchOptions::default()
         .with_limit(50)
         .with_facet_filters(filters);
 
+    let search_service = &search_state.0.read().await;
     let results = search_service
         .search_slides(&query, &search_options)
         .await?;
 
-    enrich_results(&*db_pool, results).await
+    let db_pool = db_state.0.read().await;
+    enrich_results(&db_pool, results).await
 }
 
 async fn enrich_results(
@@ -90,38 +93,39 @@ async fn enrich_results(
         )
         .bind(&key)
         .bind(slide_idx)
-        .fetch_one(pool)
+        .fetch_optional(pool)
         .await?;
 
         let mut year = fallback_year.unwrap_or_default();
         let mut course_name = fallback_course.unwrap_or("").to_string();
         let mut lecture_name = fallback_lecture.unwrap_or("").to_string();
         let mut page_name = fallback_page.unwrap_or("").to_string();
+        let mut download_path = None;
 
-        if let Some(db_course) = row.try_get::<Option<String>, _>("course_name")? {
-            if !db_course.is_empty() {
-                course_name = db_course;
+        if let Some(row) = row {
+            if let Some(db_course) = row.try_get::<Option<String>, _>("course_name")? {
+                if !db_course.is_empty() {
+                    course_name = db_course;
+                }
             }
-        }
-        if let Some(db_lecture) = row.try_get::<Option<String>, _>("lecture_name")? {
-            if !db_lecture.is_empty() {
-                lecture_name = db_lecture;
+            if let Some(db_lecture) = row.try_get::<Option<String>, _>("lecture_name")? {
+                if !db_lecture.is_empty() {
+                    lecture_name = db_lecture;
+                }
             }
-        }
-        if let Some(db_page) = row.try_get::<Option<String>, _>("page_name")? {
-            if !db_page.is_empty() {
-                page_name = db_page;
+            if let Some(db_page) = row.try_get::<Option<String>, _>("page_name")? {
+                if !db_page.is_empty() {
+                    page_name = db_page;
+                }
             }
-        }
-        if let Some(db_year) = row.try_get::<Option<i64>, _>("course_year")? {
-            if db_year >= 0 {
-                year = db_year as u32;
+            if let Some(db_year) = row.try_get::<Option<i64>, _>("course_year")? {
+                if db_year >= 0 {
+                    year = db_year as u32;
+                }
             }
-        }
 
-        let download_path = row
-            .try_get::<Option<String>, _>("pdf_path")?
-            .unwrap_or_default();
+            download_path = row.try_get::<Option<String>, _>("pdf_path")?;
+        }
 
         enriched.push(SlideSearchEntry {
             search_result: SearchResult {

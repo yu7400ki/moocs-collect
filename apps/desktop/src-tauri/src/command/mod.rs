@@ -6,6 +6,7 @@ pub mod get_lectures;
 pub mod get_pages;
 pub mod get_recorded_courses;
 pub mod login;
+pub mod purge_index;
 pub mod search_slides;
 
 pub use download_slides::*;
@@ -16,4 +17,5 @@ pub use get_lectures::*;
 pub use get_pages::*;
 pub use get_recorded_courses::*;
 pub use login::*;
+pub use purge_index::*;
 pub use search_slides::*;

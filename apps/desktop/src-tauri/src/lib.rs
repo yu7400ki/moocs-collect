@@ -26,7 +26,7 @@ pub fn run() {
 
             let db_pool = async_runtime::block_on(db::init(handle.clone()))?;
 
-            app.manage(db_pool);
+            app.manage(state::DbState::new(db_pool));
             app.manage(state::CollectState::new()?);
             app.manage(state::SearchState::new(app)?);
             Ok(())
@@ -41,6 +41,7 @@ pub fn run() {
             command::get_archive_years,
             command::search_slides,
             command::get_recorded_courses,
+            command::purge_index,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

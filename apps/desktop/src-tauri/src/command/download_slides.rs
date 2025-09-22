@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::state::{CollectState, SearchState};
+use crate::state::{CollectState, DbState, SearchState};
 use collect::{
     error::CollectError,
     pdf::{self, PdfConversionError, PreProcessor},
@@ -47,7 +47,7 @@ pub async fn download_slides(
     page_slug: String,
     collect_state: State<'_, CollectState>,
     search_state: State<'_, SearchState>,
-    db_pool: State<'_, SqlitePool>,
+    db_state: State<'_, DbState>,
 ) -> Result<Option<String>, DownloadError> {
     let collect = &collect_state.collect;
 
@@ -111,6 +111,7 @@ pub async fn download_slides(
         page_info.display_name(),
     )?;
 
+    let db_pool = db_state.0.read().await;
     persist_downloaded_slides(
         &db_pool,
         &course_info,
@@ -121,7 +122,7 @@ pub async fn download_slides(
     )
     .await?;
 
-    let search_service = &search_state.0;
+    let search_service = search_state.0.read().await;
     for (idx, content) in contents.iter().enumerate() {
         if let Err(e) = search_service.index_slide_content(content, idx).await {
             log::warn!("Failed to index slide content ({}): {}", idx, e);

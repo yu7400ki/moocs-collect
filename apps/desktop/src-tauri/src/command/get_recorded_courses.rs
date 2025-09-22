@@ -1,5 +1,7 @@
-use sqlx::{Row, SqlitePool};
+use sqlx::Row;
 use tauri::State;
+
+use crate::state::DbState;
 
 #[derive(Debug, thiserror::Error)]
 pub enum RecordedCoursesError {
@@ -27,8 +29,9 @@ pub struct RecordedCourse {
 
 #[tauri::command]
 pub async fn get_recorded_courses(
-    db_pool: State<'_, SqlitePool>,
+    db_state: State<'_, DbState>,
 ) -> Result<Vec<RecordedCourse>, RecordedCoursesError> {
+    let db_pool = db_state.0.read().await;
     let rows = sqlx::query(
         "SELECT year, slug, name, sort_index FROM courses ORDER BY year DESC, sort_index ASC",
     )

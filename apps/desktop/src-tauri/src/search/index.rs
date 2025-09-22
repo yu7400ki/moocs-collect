@@ -8,6 +8,7 @@ use super::schema::SlideSchema;
 pub struct IndexManager {
     pub index: Index,
     pub schema: SlideSchema,
+    pub index_path: PathBuf,
 }
 
 impl IndexManager {
@@ -16,7 +17,11 @@ impl IndexManager {
             let index = Index::open_in_dir(&index_path)?;
             if let Some(schema) = SlideSchema::from_existing(&index.schema()) {
                 register_analyzers(&index)?;
-                return Ok(Self { index, schema });
+                return Ok(Self {
+                    index,
+                    schema,
+                    index_path,
+                });
             }
 
             log::warn!(
@@ -32,10 +37,21 @@ impl IndexManager {
 
         register_analyzers(&index)?;
 
-        Ok(Self { index, schema })
+        Ok(Self {
+            index,
+            schema,
+            index_path,
+        })
     }
 
     pub fn writer(&self, heap_size: usize) -> Result<IndexWriter, TantivyError> {
         self.index.writer(heap_size)
+    }
+
+    pub fn purge_index(&self) -> Result<(), TantivyError> {
+        if self.index_path.exists() {
+            std::fs::remove_dir_all(&self.index_path)?;
+        }
+        Ok(())
     }
 }

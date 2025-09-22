@@ -40,6 +40,18 @@ pub async fn init(handle: AppHandle) -> Result<SqlitePool, DbError> {
     Ok(pool)
 }
 
+pub async fn purge_database(handle: &AppHandle) -> Result<SqlitePool, DbError> {
+    let db_path = resolve_db_path(handle)?;
+
+    if db_path.exists() {
+        std::fs::remove_file(&db_path)?;
+    }
+
+    let pool = init(handle.clone()).await?;
+
+    Ok(pool)
+}
+
 fn resolve_db_path(handle: &AppHandle) -> Result<PathBuf, DbError> {
     let base_dir = handle
         .path()

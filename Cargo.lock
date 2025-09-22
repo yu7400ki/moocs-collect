@@ -197,6 +197,7 @@ dependencies = [
  "tauri-plugin-store",
  "tauri-plugin-updater",
  "thiserror 2.0.16",
+ "tokio",
  "unicode-normalization",
 ]
 

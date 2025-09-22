@@ -2,6 +2,7 @@ use crate::search::{SearchError, SearchService};
 use collect::Collect;
 use reqwest::Client;
 use std::sync::Arc;
+use tokio::sync::RwLock;
 
 pub struct CollectState {
     pub collect: Arc<Collect>,
@@ -22,12 +23,20 @@ impl CollectState {
     }
 }
 
-pub struct SearchState(pub SearchService);
+pub struct SearchState(pub RwLock<SearchService>);
 
 impl SearchState {
     pub fn new(app: &tauri::App) -> Result<Self, SearchError> {
         let handle = app.handle();
-        let search_service = SearchService::from_app_handle(&handle)?;
-        Ok(Self(search_service))
+        let search_service = SearchService::try_from(handle)?;
+        Ok(Self(RwLock::new(search_service)))
+    }
+}
+
+pub struct DbState(pub RwLock<sqlx::SqlitePool>);
+
+impl DbState {
+    pub fn new(pool: sqlx::SqlitePool) -> Self {
+        Self(RwLock::new(pool))
     }
 }
