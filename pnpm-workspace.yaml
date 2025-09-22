@@ -1,6 +1,5 @@
 packages:
   - apps/*
-  - packages/*
 
 patchedDependencies:
   '@park-ui/panda-preset': patches/@park-ui__panda-preset.patch

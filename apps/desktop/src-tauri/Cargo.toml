@@ -17,7 +17,7 @@ serde_json = "1.0"
 sha2 = "0.10"
 
 [dependencies]
-collect = { path = "../../../packages/collect" }
+collect = { path = "../../.." }
 reqwest = { workspace = true }
 futures = { workspace = true }
 rayon = { workspace = true }
