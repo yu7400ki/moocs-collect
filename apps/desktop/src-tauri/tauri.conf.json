@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "collect",
-  "version": "0.0.3",
+  "version": "1.0.0",
   "identifier": "me.yu7400ki.moocs-collect",
   "build": {
     "frontendDist": "../dist",
