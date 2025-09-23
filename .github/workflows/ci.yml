@@ -3,6 +3,10 @@ name: CI
 on:
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   CARGO_TERM_COLOR: always
   RUSTFLAGS: -D warnings
