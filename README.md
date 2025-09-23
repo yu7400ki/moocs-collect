@@ -66,7 +66,7 @@ moocs-collect/
 
 ### 必要環境
 
-- Rust:
+- Rust
 - Node.js
 - pnpm
 
