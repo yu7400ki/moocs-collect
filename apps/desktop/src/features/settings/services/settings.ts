@@ -8,6 +8,7 @@ async function getDefaultSettings(): Promise<Settings> {
   const document = await path.documentDir();
   const downloadDir = await path.join(document, "moocs-collect");
   return {
+    version: 1,
     theme: "system",
     downloadDir,
   };
