@@ -17,7 +17,7 @@ impl CollectState {
         .build()?;
         let client = Arc::new(client);
         Ok(Self {
-            collect: Arc::new(Collect::new(client.as_ref().clone())),
+            collect: Arc::new(Collect::from(client.clone())),
             client,
         })
     }

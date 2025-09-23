@@ -9,7 +9,7 @@ use rayon::prelude::*;
 use std::{
     fs::create_dir_all,
     path::{Path, PathBuf},
-    sync::LazyLock,
+    sync::{Arc, LazyLock},
     time::Duration,
 };
 
@@ -195,7 +195,7 @@ async fn save_slides_from_pages<P: AsRef<Path> + Sync>(
 async fn main() -> anyhow::Result<()> {
     let args = Cli::parse();
 
-    let collect = Collect::new(CLIENT.clone());
+    let collect = Collect::from(Arc::new(CLIENT.clone()));
 
     let username: String = Input::new().with_prompt("ユーザー名").interact_text()?;
     let entry = Entry::new("me.yu7400ki.moocs-collect", &username)?;

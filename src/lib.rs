@@ -33,32 +33,14 @@ pub struct Collect {
 }
 
 impl Collect {
-    pub fn new(http_client: Client) -> Self {
-        let client = Arc::new(http_client);
-
-        // Create repository instances
-        let auth_repository = Arc::new(AuthenticationRepositoryImpl::new(client.clone()));
-        let course_repository = Arc::new(CourseRepositoryImpl::new(client.clone()));
-        let lecture_repository = Arc::new(LectureRepositoryImpl::new(client.clone()));
-        let page_repository = Arc::new(PageRepositoryImpl::new(client.clone()));
-        let slide_repository = Arc::new(SlideRepositoryImpl::new(client.clone()));
-
-        // Create service instances
-        let auth_service = Arc::new(AuthenticationServiceImpl::new(auth_repository.clone()));
-        let course_service = Arc::new(CourseServiceImpl::new(
-            course_repository,
-            auth_repository.clone(),
-        ));
-        let lecture_service = Arc::new(LectureServiceImpl::new(
-            lecture_repository,
-            auth_repository.clone(),
-        ));
-        let page_service = Arc::new(PageServiceImpl::new(
-            page_repository,
-            auth_repository.clone(),
-        ));
-        let slide_service = Arc::new(SlideServiceImpl::new(slide_repository, auth_repository));
-        Collect {
+    pub fn new(
+        course_service: Arc<dyn CourseService>,
+        lecture_service: Arc<dyn LectureService>,
+        page_service: Arc<dyn PageService>,
+        slide_service: Arc<dyn SlideService>,
+        auth_service: Arc<dyn AuthenticationService>,
+    ) -> Self {
+        Self {
             course_service,
             lecture_service,
             page_service,
@@ -140,10 +122,45 @@ impl Collect {
 
 impl Default for Collect {
     fn default() -> Self {
-        Collect::new(Client::builder()
+        let client = Client::builder()
         .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0")
         .cookie_store(true)
-        .build().expect("Failed to create HTTP client"))
+        .build().expect("Failed to create HTTP client");
+        Collect::from(Arc::new(client))
+    }
+}
+
+impl From<Arc<Client>> for Collect {
+    fn from(client: Arc<Client>) -> Self {
+        // Create repository instances
+        let auth_repository = Arc::new(AuthenticationRepositoryImpl::new(client.clone()));
+        let course_repository = Arc::new(CourseRepositoryImpl::new(client.clone()));
+        let lecture_repository = Arc::new(LectureRepositoryImpl::new(client.clone()));
+        let page_repository = Arc::new(PageRepositoryImpl::new(client.clone()));
+        let slide_repository = Arc::new(SlideRepositoryImpl::new(client.clone()));
+
+        // Create service instances
+        let auth_service = Arc::new(AuthenticationServiceImpl::new(auth_repository.clone()));
+        let course_service = Arc::new(CourseServiceImpl::new(
+            course_repository,
+            auth_repository.clone(),
+        ));
+        let lecture_service = Arc::new(LectureServiceImpl::new(
+            lecture_repository,
+            auth_repository.clone(),
+        ));
+        let page_service = Arc::new(PageServiceImpl::new(
+            page_repository,
+            auth_repository.clone(),
+        ));
+        let slide_service = Arc::new(SlideServiceImpl::new(slide_repository, auth_repository));
+        Collect::new(
+            course_service,
+            lecture_service,
+            page_service,
+            slide_service,
+            auth_service,
+        )
     }
 }
 
