@@ -1,0 +1,80 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "formatter": { "enabled": true, "useEditorconfig": true },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "files": {
+    "includes": [
+      "**",
+      "!**/public",
+      "!**/create-style-context.tsx",
+      "!**/routeTree.gen.ts"
+    ]
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "correctness": {
+        "useImportExtensions": "off",
+        "noUndeclaredDependencies": "off",
+        "noUnusedVariables": "off",
+        "noUndeclaredVariables": "off"
+      },
+      "performance": {
+        "noBarrelFile": "off",
+        "noReExportAll": "off",
+        "noNamespaceImport": "off"
+      },
+      "style": {
+        "noNamespace": "off",
+        "noDefaultExport": "off",
+        "useFilenamingConvention": {
+          "level": "error",
+          "options": {
+            "filenameCases": ["kebab-case"]
+          }
+        },
+        "noImplicitBoolean": "off",
+        "useNamingConvention": "off",
+        "noParameterAssign": "error",
+        "useAsConstAssertion": "error",
+        "useDefaultParameterLast": "error",
+        "useEnumInitializers": "error",
+        "useSelfClosingElements": "error",
+        "useSingleVarDeclarator": "error",
+        "noUnusedTemplateLiteral": "error",
+        "useNumberNamespace": "error",
+        "noInferrableTypes": "error",
+        "noUselessElse": "error"
+      },
+      "suspicious": {
+        "noReactSpecificProps": "off"
+      }
+    }
+  },
+  "javascript": {
+    "formatter": { "quoteStyle": "double" },
+    "globals": ["React"]
+  },
+  "json": {
+    "parser": { "allowComments": true }
+  },
+  "overrides": [
+    {
+      "includes": ["**/src/routes/**/*"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useFilenamingConvention": {
+              "level": "off"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

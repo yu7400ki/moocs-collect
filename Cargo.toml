@@ -1,10 +1,33 @@
+[package]
+name = "collect"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+reqwest = { workspace = true }
+tokio = { workspace = true }
+futures = { workspace = true }
+rayon = { workspace = true }
+bitflags = { workspace = true }
+thiserror = { workspace = true }
+base64 = "0.22.1"
+lol_html = "2.2.0"
+regex = "1.10.4"
+scraper = { version = "0.23.1", features = ["atomic"] }
+unicode_escape = "0.1.0"
+bytes = "1.10.0"
+svg2pdf = { version = "0.13" }
+lopdf = "0.35.0"
+async-trait = "0.1.88"
+image = "0.25.6"
+infer = "0.19.0"
+html-escape = "0.2"
+
 [workspace]
 members = [
-    "collect-cli",
-    "collect-core",
-    "src-tauri",
+    "apps/cli",
+    "apps/desktop/src-tauri",
 ]
-default-members = ["collect-cli"]
 resolver = "2"
 
 [workspace.dependencies]
@@ -14,3 +37,21 @@ tokio = { version = "1.37.0", features = ["rt", "net", "macros", "rt-multi-threa
 futures = "0.3.31"
 rayon = "1.10.0"
 bitflags = "2.9.0"
+thiserror = "2.0"
+
+[workspace.lints.clippy]
+all      = "warn"
+
+pedantic = { level = "warn", priority = 0 }
+nursery  = { level = "warn", priority = 0 }
+
+restriction = "allow"
+
+unwrap_used   = { level = "deny", priority = 2 }
+expect_used   = { level = "deny", priority = 2 }
+panic         = { level = "deny", priority = 2 }
+todo          = { level = "deny", priority = 2 }
+unimplemented = { level = "deny", priority = 2 }
+dbg_macro     = { level = "deny", priority = 2 }
+print_stdout  = { level = "deny", priority = 2 }
+print_stderr  = { level = "deny", priority = 2 }

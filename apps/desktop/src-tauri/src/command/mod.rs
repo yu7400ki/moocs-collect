@@ -1,0 +1,21 @@
+pub mod download_slides;
+pub mod get_archive_years;
+pub mod get_courses;
+pub mod get_credential;
+pub mod get_lectures;
+pub mod get_pages;
+pub mod get_recorded_courses;
+pub mod login;
+pub mod purge_index;
+pub mod search_slides;
+
+pub use download_slides::*;
+pub use get_archive_years::*;
+pub use get_courses::*;
+pub use get_credential::*;
+pub use get_lectures::*;
+pub use get_pages::*;
+pub use get_recorded_courses::*;
+pub use login::*;
+pub use purge_index::*;
+pub use search_slides::*;

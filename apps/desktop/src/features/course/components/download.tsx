@@ -1,0 +1,107 @@
+import { DownloadIcon } from "lucide-react";
+import { useCallback, useTransition } from "react";
+import { store } from "@/components/providers/jotai";
+import { Button } from "@/components/ui/button";
+import { type DownloadItem, queueAtom } from "@/features/download/atoms/queue";
+import type { MaybePromise } from "@/utils/types";
+import { courseTreeAtom, type Node } from "../atoms/check";
+import { yearAtom } from "../atoms/year";
+import { getCourses } from "../services/courses";
+import { getAllLectures } from "../services/lectures";
+import { getPages } from "../services/pages";
+
+async function delayedPromise<T>(value: MaybePromise<T>, ms = 1000) {
+  if (value instanceof Promise) {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+  }
+  return await value;
+}
+
+function intoNode<T extends { slug: string }>(data: T): Node {
+  return {
+    id: data.slug,
+    checked: true,
+  };
+}
+
+function nonNullable<T>(v: T): v is NonNullable<T> {
+  return v !== null && v !== undefined;
+}
+
+function getCheckedPairs<T extends { slug: string }>(
+  nodes: Node[] | undefined,
+  items: T[],
+  defaultMap: (item: T) => Node = intoNode,
+): [T, Node][] {
+  const nodeList = nodes ?? items.map(defaultMap);
+  return nodeList
+    .filter((node) => node.checked)
+    .map((node) => {
+      const item = items.find((item) => item.slug === node.id);
+      return item ? ([item, node] as [T, Node]) : null;
+    })
+    .filter(nonNullable);
+}
+
+function enqueuePages(items: DownloadItem[]) {
+  for (const item of items) {
+    store.set(queueAtom, item);
+  }
+}
+
+async function retrievePages(node: Node) {
+  const year = store.get(yearAtom);
+  const courses = await delayedPromise(getCourses({ year }));
+  const coursePairs = getCheckedPairs(node.children, courses);
+
+  for (const [course, courseNode] of coursePairs) {
+    const lectures = await delayedPromise(getAllLectures(course));
+    const lecturePairs = getCheckedPairs(courseNode.children, lectures);
+
+    for (const [lecture, lectureNode] of lecturePairs) {
+      const pages = await delayedPromise(getPages(lecture));
+      const pagePairs = getCheckedPairs(lectureNode.children, pages);
+      enqueuePages(
+        pagePairs.map(([page]) => ({
+          ...page,
+          course,
+          lecture,
+        })),
+      );
+    }
+  }
+}
+
+export function Download({
+  onClick,
+  ...props
+}: React.ComponentProps<typeof Button>) {
+  const [isPending, startTransition] = useTransition();
+
+  const handleClick = useCallback(
+    async (e: React.MouseEvent<HTMLButtonElement>) => {
+      onClick?.(e);
+      const tree = await store.get(courseTreeAtom);
+      await retrievePages(tree);
+      store.set(courseTreeAtom, []);
+    },
+    [onClick],
+  );
+
+  return (
+    <Button
+      onClick={(e) => {
+        startTransition(async () => {
+          await handleClick(e);
+        });
+      }}
+      size="sm"
+      variant="subtle"
+      loading={isPending}
+      {...props}
+    >
+      ダウンロード
+      <DownloadIcon />
+    </Button>
+  );
+}
