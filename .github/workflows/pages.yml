@@ -60,8 +60,12 @@ jobs:
               || echo "No existing latest.json found"
           fi
 
+      - name: Configure GitHub Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
       - name: Build website
-        run: pnpm --filter=website build
+        run: pnpm --filter=website build --base=${{ steps.pages.outputs.base_path }}
 
       - name: Upload to GitHub Pages
         uses: actions/upload-pages-artifact@v3
