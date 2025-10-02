@@ -50,6 +50,28 @@ collect-cli --path ~/Downloads --year 2024
 
 実行後は対話形式で授業・講義・ページを選択できます。
 
+## ユーティリティ
+
+### mcmerge
+
+PDFファイルを結合するユーティリティです。
+
+#### インストール
+
+```bash
+cargo install --git https://github.com/yu7400ki/moocs-collect.git mcmerge
+```
+
+#### 使い方
+
+```bash
+mcmerge lecture --path C:\Users\<username>\Documents\moocs-collect\2025\
+```
+
+| オプション | 説明                     | 例                    |
+|------------|--------------------------|----------------------|
+| `--path`   | 対象ディレクトリ           | `C:\Users\<username>\Documents\moocs-collect\2025\` |
+
 ## アーキテクチャ
 
 ```
