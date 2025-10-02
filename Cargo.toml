@@ -27,6 +27,7 @@ html-escape = "0.2"
 members = [
     "apps/cli",
     "apps/desktop/src-tauri",
+    "apps/merge",
 ]
 resolver = "2"
 
