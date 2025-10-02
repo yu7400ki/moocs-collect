@@ -41,7 +41,7 @@ fn parse_pdf_path(path: &Path) -> Result<PdfInfo> {
 
     // Try Desktop format first: year/course/lecture/page_title (number).pdf
     let desktop_re = Regex::new(
-        r"(?P<year>\d{4})/(?P<course>[^/]+)/(?P<lecture>[^/]+)/(?P<page_title>[^(]+?)(?:\s+\((?P<page_number>\d+)\))?\.pdf$",
+        r"(?P<year>\d{4})/(?P<course>[^/]+)/(?P<lecture>[^/]+)/(?P<page_title>.+?)(?:\s+\((?P<page_number>\d+)\))?\.pdf$",
     )?;
 
     if let Some(caps) = desktop_re.captures(&normalized) {
@@ -68,7 +68,7 @@ fn parse_pdf_path(path: &Path) -> Result<PdfInfo> {
 
     // Try CLI format: course/lecture_group - lecture_name/page_slug - page_title (number).pdf
     let cli_re = Regex::new(
-        r"(?P<course>[^/]+)/(?P<lecture_group>[^/]+)\s*-\s*(?P<lecture_name>[^/]+)/(?P<page_slug>[^/\s-]+)\s*-\s*(?P<page_title>[^(]+?)(?:\s+\((?P<page_number>\d+)\))?\.pdf$",
+        r"(?P<course>[^/]+)/(?P<lecture_group>[^/]+)\s*-\s*(?P<lecture_name>[^/]+)/(?P<page_slug>[^/\s-]+)\s*-\s*(?P<page_title>.+?)(?:\s+\((?P<page_number>\d+)\))?\.pdf$",
     )?;
 
     if let Some(caps) = cli_re.captures(&normalized) {
@@ -474,4 +474,138 @@ fn main() -> Result<()> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_desktop_format_basic() {
+        let path = Path::new(
+            "2025/コンピュータ・システム論D/08_ 機械語プログラミング入門/1. 機械語の基礎.pdf",
+        );
+        let result = parse_pdf_path(path).unwrap();
+
+        assert_eq!(result.course_name, "コンピュータ・システム論D");
+        assert_eq!(result.lecture_name, "08_ 機械語プログラミング入門");
+        assert_eq!(result.page_title, "1. 機械語の基礎");
+        assert_eq!(result.page_number, 1);
+    }
+
+    #[test]
+    fn test_parse_desktop_format_with_parentheses_in_title() {
+        let path = Path::new("2025/コンピュータ・システム論D/08_ 機械語プログラミング入門/2. 機械語(アセンブリ)でプログラムを書いてみよう.pdf");
+        let result = parse_pdf_path(path).unwrap();
+
+        assert_eq!(result.course_name, "コンピュータ・システム論D");
+        assert_eq!(result.lecture_name, "08_ 機械語プログラミング入門");
+        assert_eq!(
+            result.page_title,
+            "2. 機械語(アセンブリ)でプログラムを書いてみよう"
+        );
+        assert_eq!(result.page_number, 1);
+    }
+
+    #[test]
+    fn test_parse_desktop_format_with_page_number() {
+        let path = Path::new(
+            "2025/コンピュータ・システム論D/08_ 機械語プログラミング入門/1. 機械語の基礎 (2).pdf",
+        );
+        let result = parse_pdf_path(path).unwrap();
+
+        assert_eq!(result.course_name, "コンピュータ・システム論D");
+        assert_eq!(result.lecture_name, "08_ 機械語プログラミング入門");
+        assert_eq!(result.page_title, "1. 機械語の基礎");
+        assert_eq!(result.page_number, 2);
+    }
+
+    #[test]
+    fn test_parse_desktop_format_with_parentheses_and_page_number() {
+        let path = Path::new("2025/コンピュータ・システム論D/08_ 機械語プログラミング入門/2. 機械語(アセンブリ)でプログラムを書いてみよう (3).pdf");
+        let result = parse_pdf_path(path).unwrap();
+
+        assert_eq!(result.course_name, "コンピュータ・システム論D");
+        assert_eq!(result.lecture_name, "08_ 機械語プログラミング入門");
+        assert_eq!(
+            result.page_title,
+            "2. 機械語(アセンブリ)でプログラムを書いてみよう"
+        );
+        assert_eq!(result.page_number, 3);
+    }
+
+    #[test]
+    fn test_parse_cli_format_basic() {
+        let path = Path::new(
+            "コンピュータ・システム論D/08 - 機械語プログラミング入門/1 - 機械語の基礎.pdf",
+        );
+        let result = parse_pdf_path(path).unwrap();
+
+        assert_eq!(result.course_name, "コンピュータ・システム論D");
+        assert_eq!(result.lecture_name, "機械語プログラミング入門");
+        assert_eq!(result.page_slug, "1");
+        assert_eq!(result.page_title, "機械語の基礎");
+        assert_eq!(result.page_number, 1);
+    }
+
+    #[test]
+    fn test_parse_cli_format_with_parentheses_in_title() {
+        let path = Path::new("コンピュータ・システム論D/08 - 機械語プログラミング入門/2 - 機械語(アセンブリ)でプログラムを書いてみよう.pdf");
+        let result = parse_pdf_path(path).unwrap();
+
+        assert_eq!(result.course_name, "コンピュータ・システム論D");
+        assert_eq!(result.lecture_name, "機械語プログラミング入門");
+        assert_eq!(result.page_slug, "2");
+        assert_eq!(
+            result.page_title,
+            "機械語(アセンブリ)でプログラムを書いてみよう"
+        );
+        assert_eq!(result.page_number, 1);
+    }
+
+    #[test]
+    fn test_parse_cli_format_with_page_number() {
+        let path = Path::new(
+            "コンピュータ・システム論D/08 - 機械語プログラミング入門/1 - 機械語の基礎 (2).pdf",
+        );
+        let result = parse_pdf_path(path).unwrap();
+
+        assert_eq!(result.course_name, "コンピュータ・システム論D");
+        assert_eq!(result.lecture_name, "機械語プログラミング入門");
+        assert_eq!(result.page_slug, "1");
+        assert_eq!(result.page_title, "機械語の基礎");
+        assert_eq!(result.page_number, 2);
+    }
+
+    #[test]
+    fn test_parse_cli_format_with_parentheses_and_page_number() {
+        let path = Path::new("コンピュータ・システム論D/08 - 機械語プログラミング入門/2 - 機械語(アセンブリ)でプログラムを書いてみよう (3).pdf");
+        let result = parse_pdf_path(path).unwrap();
+
+        assert_eq!(result.course_name, "コンピュータ・システム論D");
+        assert_eq!(result.lecture_name, "機械語プログラミング入門");
+        assert_eq!(result.page_slug, "2");
+        assert_eq!(
+            result.page_title,
+            "機械語(アセンブリ)でプログラムを書いてみよう"
+        );
+        assert_eq!(result.page_number, 3);
+    }
+
+    #[test]
+    fn test_parse_multiple_parentheses() {
+        let path = Path::new("2025/course/lecture/タイトル(注1)と説明(注2).pdf");
+        let result = parse_pdf_path(path).unwrap();
+
+        assert_eq!(result.page_title, "タイトル(注1)と説明(注2)");
+        assert_eq!(result.page_number, 1);
+    }
+
+    #[test]
+    fn test_parse_invalid_format() {
+        let path = Path::new("invalid/path.pdf");
+        let result = parse_pdf_path(path);
+
+        assert!(result.is_err());
+    }
 }
