@@ -11,6 +11,7 @@ import { router } from "@/components/providers/tanstack-router";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field } from "@/components/ui/field";
+import { Text } from "@/components/ui/text";
 import { authenticatedAtom } from "../atoms/authenticated";
 
 const schema = z.object({
@@ -95,6 +96,9 @@ export function LoginForm() {
       noValidate
       className={css({ display: "grid", gap: 4 })}
     >
+      <Text as="h1" size="xl" textAlign="center">
+        INIADアカウントでログイン
+      </Text>
       <Field.Root invalid={!!fields.username.errors}>
         <Field.Label>ユーザー名</Field.Label>
         <Field.Input
