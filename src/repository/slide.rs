@@ -57,14 +57,12 @@ impl SlideRepositoryImpl {
         let document = Html::parse_document(html);
         let iframe_selector = parse_selector("iframe")?;
 
-        let gslide_regex =
-            Regex::new(r"^https://docs\.google\.com/presentation/d/.*?/(embed|pubembed)\?")
-                .map_err(|e| {
-                    crate::error::CollectError::parse(
-                        "Invalid Google Slides regex",
-                        Some(e.to_string()),
-                    )
-                })?;
+        let gslide_regex = Regex::new(
+            r"^https://docs\.google\.com/(a/[^/]+/)?presentation/d/(e/)?.*?/(embed|pubembed)\?",
+        )
+        .map_err(|e| {
+            crate::error::CollectError::parse("Invalid Google Slides regex", Some(e.to_string()))
+        })?;
 
         let mut slides = Vec::new();
         let mut index = 0;
