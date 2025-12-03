@@ -44,7 +44,20 @@ export function DownloadSection({ latestRelease }: Props) {
       : [];
 
   const displayPlatforms = Object.entries(latestRelease.platforms).filter(
-    ([platform]) => !primaryPlatform.some(([p]) => p === platform),
+    ([platform]) => {
+      // プライマリプラットフォームは除外
+      if (primaryPlatform.some(([p]) => p === platform)) {
+        return false;
+      }
+      // 自動更新用（プレフィックスなし）のプラットフォームは除外
+      const autoUpdatePlatforms = [
+        "windows-x86_64",
+        "darwin-x86_64",
+        "darwin-aarch64",
+        "linux-x86_64",
+      ];
+      return !autoUpdatePlatforms.includes(platform);
+    },
   );
 
   const publishedAt = new Date(latestRelease.pub_date).toLocaleDateString(
@@ -106,40 +119,44 @@ function getPrimaryPlatformFromOS(
   release: LatestRelease,
   os: DetectedOS,
 ): Record<string, Platform> {
+  const autoUpdatePlatforms = new Set([
+    "windows-x86_64",
+    "darwin-x86_64",
+    "darwin-aarch64",
+    "linux-x86_64",
+  ]);
+
+  const allPlatforms = Object.entries(release.platforms).filter(
+    ([platform]) => !autoUpdatePlatforms.has(platform),
+  );
+
   let platforms: [string, Platform][];
+
   switch (os.os) {
     case "Windows":
-      platforms = Object.hasOwn(release.platforms, "windows-x86_64")
-        ? Object.entries(release.platforms).filter(
-            ([platform]) => platform === "windows-x86_64",
-          )
-        : [];
+      platforms = allPlatforms.filter(([platform]) =>
+        platform.startsWith("windows-"),
+      );
       break;
     case "macOS":
       if (os.arch === "arm") {
-        platforms = Object.hasOwn(release.platforms, "darwin-aarch64")
-          ? Object.entries(release.platforms).filter(
-              ([platform]) => platform === "darwin-aarch64",
-            )
-          : [];
+        platforms = allPlatforms.filter(([platform]) =>
+          platform.startsWith("darwin-aarch64-"),
+        );
       } else if (os.arch === "x86") {
-        platforms = Object.hasOwn(release.platforms, "darwin-x86_64")
-          ? Object.entries(release.platforms).filter(
-              ([platform]) => platform === "darwin-x86_64",
-            )
-          : [];
+        platforms = allPlatforms.filter(([platform]) =>
+          platform.startsWith("darwin-x86_64-"),
+        );
       } else {
-        platforms = Object.entries(release.platforms).filter(([platform]) =>
-          platform.startsWith("darwin"),
+        platforms = allPlatforms.filter(([platform]) =>
+          platform.startsWith("darwin-"),
         );
       }
       break;
     case "Linux":
-      platforms = Object.hasOwn(release.platforms, "linux-x86_64")
-        ? Object.entries(release.platforms).filter(
-            ([platform]) => platform === "linux-x86_64",
-          )
-        : [];
+      platforms = allPlatforms.filter(([platform]) =>
+        platform.startsWith("linux-"),
+      );
       break;
     default:
       platforms = [];

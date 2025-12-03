@@ -30,25 +30,27 @@ export function DownloadButton({
 function PlatformIcon({ platform }: { platform: string }) {
   const iconClass = "h-5 w-5";
 
-  switch (platform) {
-    case "windows-x86_64":
-      return <Grid2X2 className={iconClass} />;
-    case "darwin-x86_64":
-    case "darwin-aarch64":
-      return <Apple className={iconClass} />;
-    case "linux-x86_64":
-      return <Icon className={iconClass} iconNode={penguin} />;
-    default:
-      return <Download className={iconClass} />;
+  if (platform.startsWith("windows-")) {
+    return <Grid2X2 className={iconClass} />;
   }
+  if (platform.startsWith("darwin-")) {
+    return <Apple className={iconClass} />;
+  }
+  if (platform.startsWith("linux-")) {
+    return <Icon className={iconClass} iconNode={penguin} />;
+  }
+  return <Download className={iconClass} />;
 }
 
 function getPlatformDisplayName(platform: string): string {
   const names: Record<string, string> = {
-    "windows-x86_64": "Windows",
-    "darwin-x86_64": "macOS (Intel)",
-    "darwin-aarch64": "macOS (Apple Silicon)",
-    "linux-x86_64": "Linux",
+    "windows-x86_64-msi": "Windows (MSI)",
+    "windows-x86_64-nsis": "Windows (EXE)",
+    "darwin-x86_64-app": "macOS (Intel)",
+    "darwin-aarch64-app": "macOS (Apple Silicon)",
+    "linux-x86_64-appimage": "Linux (AppImage)",
+    "linux-x86_64-deb": "Linux (DEB)",
+    "linux-x86_64-rpm": "Linux (RPM)",
   };
 
   return names[platform] || platform;
