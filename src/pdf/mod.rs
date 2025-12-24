@@ -105,6 +105,45 @@ impl PreProcessor {
                             }
                         }
                     }
+
+                    // width/heightのサニタイズ
+                    const MAX_DIMENSION: f64 = 4096.0;
+
+                    let width_attr = el.get_attribute("width");
+                    let height_attr = el.get_attribute("height");
+
+                    let width = width_attr.as_ref().and_then(|w| w.parse::<f64>().ok());
+                    let height = height_attr.as_ref().and_then(|h| h.parse::<f64>().ok());
+
+                    match (width, height) {
+                        (Some(w), Some(h)) => {
+                            if w > MAX_DIMENSION || h > MAX_DIMENSION {
+                                let scale = (MAX_DIMENSION / w).min(MAX_DIMENSION / h);
+                                let new_w = w * scale;
+                                let new_h = h * scale;
+                                el.set_attribute("width", &new_w.to_string())?;
+                                el.set_attribute("height", &new_h.to_string())?;
+                                el.set_attribute(
+                                    "style",
+                                    &format!("width:{}px;height:{}px;", w, h),
+                                )?;
+                            }
+                        }
+                        (Some(w), None) => {
+                            if w > MAX_DIMENSION {
+                                el.set_attribute("width", &MAX_DIMENSION.to_string())?;
+                                el.set_attribute("style", &format!("width:{}px;", MAX_DIMENSION))?;
+                            }
+                        }
+                        (None, Some(h)) => {
+                            if h > MAX_DIMENSION {
+                                el.set_attribute("height", &MAX_DIMENSION.to_string())?;
+                                el.set_attribute("style", &format!("height:{}px;", MAX_DIMENSION))?;
+                            }
+                        }
+                        (None, None) => { /* 何もしない */ }
+                    }
+
                     Ok(())
                 })],
                 ..Settings::default()
