@@ -141,6 +141,9 @@ importers:
 
   apps/website:
     dependencies:
+      '@funstack/static':
+        specifier: ^1.2.0
+        version: 1.2.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(vite@8.0.12(@types/node@22.13.8)(jiti@2.7.0)(tsx@4.19.3))
       '@lucide/lab':
         specifier: ^0.1.2
         version: 0.1.2
@@ -157,9 +160,9 @@ importers:
         specifier: ^4.3.0
         version: 4.3.0
     devDependencies:
-      '@tailwindcss/postcss':
+      '@tailwindcss/vite':
         specifier: ^4.3.0
-        version: 4.3.0
+        version: 4.3.0(vite@8.0.12(@types/node@22.13.8)(jiti@2.7.0)(tsx@4.19.3))
       '@types/react':
         specifier: ^19.2.14
         version: 19.2.14
@@ -169,15 +172,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: latest
         version: 6.0.1(vite@8.0.12(@types/node@22.13.8)(jiti@2.7.0)(tsx@4.19.3))
-      '@vitejs/plugin-rsc':
-        specifier: latest
-        version: 0.5.26(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(vite@8.0.12(@types/node@22.13.8)(jiti@2.7.0)(tsx@4.19.3))
       postcss:
         specifier: ^8.5.14
         version: 8.5.14
-      rsc-html-stream:
-        specifier: ^0.0.7
-        version: 0.0.7
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
@@ -186,10 +183,6 @@ importers:
         version: 8.0.12(@types/node@22.13.8)(jiti@2.7.0)(tsx@4.19.3)
 
 packages:
-
-  '@alloc/quick-lru@5.2.0':
-    resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
-    engines: {node: '>=10'}
 
   '@ampproject/remapping@2.3.0':
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
@@ -1065,6 +1058,18 @@ packages:
   '@fontsource/inter@5.2.5':
     resolution: {integrity: sha512-kbsPKj0S4p44JdYRFiW78Td8Ge2sBVxi/PIBwmih+RpSXUdvS9nbs1HIiuUSPtRMi14CqLEZ/fbk7dj7vni1Sg==}
 
+  '@funstack/skill-installer@1.0.0':
+    resolution: {integrity: sha512-lEYZQ4tFOLidvxy60tE7/28LUy4bJOlbT8o0ebcolaFV/cluSGtnDpWEUWIQWORtnGhrWnYl7Gr9aHvjHYkoEQ==}
+    hasBin: true
+
+  '@funstack/static@1.2.0':
+    resolution: {integrity: sha512-oB5BrlwyQt+4GkZriPt7MzaF7Nt1a+A6ttvA+Kgpc2/zkWzr/0l58J0LtMzyap1gor42lSOSrJy5MUIYpw1OWA==}
+    hasBin: true
+    peerDependencies:
+      react: ^19.2.3
+      react-dom: ^19.2.3
+      vite: ^7.0.0 || ^8.0.0
+
   '@internationalized/date@3.5.5':
     resolution: {integrity: sha512-H+CfYvOZ0LTJeeLOqm19E3uj/4YjrmOFtBufDHPfvtI80hFAMqtrp7oCACpe4Cil5l8S0Qu/9dYfZc/5lY8WQQ==}
 
@@ -1509,8 +1514,10 @@ packages:
     resolution: {integrity: sha512-F7HZGBeN9I0/AuuJS5PwcD8xayx5ri5GhjYUDBEVYUkexyA/giwbDNjRVrxSezE3T250OU2K/wp/ltWx3UOefg==}
     engines: {node: '>= 20'}
 
-  '@tailwindcss/postcss@4.3.0':
-    resolution: {integrity: sha512-Jm05Tjx+9yCLGv5qw1c+84Psds8MnyrEQYCB+FFk2lgGiUjlRqdxke4mVTuYrj2xnVZqKim2Apr5ySuQRYAw/w==}
+  '@tailwindcss/vite@4.3.0':
+    resolution: {integrity: sha512-t6J3OrB5Fc0ExuhohouH0fWUGMYL6PTLhW+E7zIk/pdbnJARZDCwjBznFnkh5ynRnIRSI4YjtTH0t6USjJISrw==}
+    peerDependencies:
+      vite: ^5.2.0 || ^6 || ^7 || ^8
 
   '@tanstack/history@1.99.13':
     resolution: {integrity: sha512-JMd7USmnp8zV8BRGIjALqzPxazvKtQ7PGXQC7n39HpbqdsmfV2ePCzieO84IvN+mwsTrXErpbjI4BfKCa+ZNCg==}
@@ -3094,6 +3101,11 @@ packages:
     peerDependencies:
       react: ^19.2.6
 
+  react-error-boundary@6.1.1:
+    resolution: {integrity: sha512-BrYwPOdXi5mqkk5lw+Uvt0ThHx32rCt3BkukS4X23A2AIWDPSGX6iaWTc0y9TU/mHDA/6qOSGel+B2ERkOvD1w==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
+
   react-fast-compare@3.2.2:
     resolution: {integrity: sha512-nsO+KSNgo1SbJqJEYRE9ERzo7YtYbou/OqjSQKxV7jcKox7+usiUVZOAC+XnDOABXggQTno0Y1CpVnuWEc1boQ==}
 
@@ -3502,8 +3514,6 @@ packages:
     resolution: {integrity: sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ==}
 
 snapshots:
-
-  '@alloc/quick-lru@5.2.0': {}
 
   '@ampproject/remapping@2.3.0':
     dependencies:
@@ -4185,6 +4195,21 @@ snapshots:
 
   '@fontsource/inter@5.2.5': {}
 
+  '@funstack/skill-installer@1.0.0': {}
+
+  '@funstack/static@1.2.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(vite@8.0.12(@types/node@22.13.8)(jiti@2.7.0)(tsx@4.19.3))':
+    dependencies:
+      '@funstack/skill-installer': 1.0.0
+      '@vitejs/plugin-rsc': 0.5.26(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(vite@8.0.12(@types/node@22.13.8)(jiti@2.7.0)(tsx@4.19.3))
+      react: 19.2.6
+      react-dom: 19.2.6(react@19.2.6)
+      react-error-boundary: 6.1.1(react@19.2.6)
+      rsc-html-stream: 0.0.7
+      srvx: 0.11.15
+      vite: 8.0.12(@types/node@22.13.8)(jiti@2.7.0)(tsx@4.19.3)
+    transitivePeerDependencies:
+      - react-server-dom-webpack
+
   '@internationalized/date@3.5.5':
     dependencies:
       '@swc/helpers': 0.5.15
@@ -4631,13 +4656,12 @@ snapshots:
       '@tailwindcss/oxide-win32-arm64-msvc': 4.3.0
       '@tailwindcss/oxide-win32-x64-msvc': 4.3.0
 
-  '@tailwindcss/postcss@4.3.0':
+  '@tailwindcss/vite@4.3.0(vite@8.0.12(@types/node@22.13.8)(jiti@2.7.0)(tsx@4.19.3))':
     dependencies:
-      '@alloc/quick-lru': 5.2.0
       '@tailwindcss/node': 4.3.0
       '@tailwindcss/oxide': 4.3.0
-      postcss: 8.5.14
       tailwindcss: 4.3.0
+      vite: 8.0.12(@types/node@22.13.8)(jiti@2.7.0)(tsx@4.19.3)
 
   '@tanstack/history@1.99.13': {}
 
@@ -6638,6 +6662,10 @@ snapshots:
     dependencies:
       react: 19.2.6
       scheduler: 0.27.0
+
+  react-error-boundary@6.1.1(react@19.2.6):
+    dependencies:
+      react: 19.2.6
 
   react-fast-compare@3.2.2: {}
 

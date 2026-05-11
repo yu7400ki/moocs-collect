@@ -1,0 +1,51 @@
+{
+  "version": "1.0.1",
+  "notes": "",
+  "pub_date": "2025-11-27T09:06:00.301Z",
+  "platforms": {
+    "darwin-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRU09jRGhmQzBmSjhnRmY0Qnhld2pud2VzbmM0YitqWlVtODJWVWV6bG16R25UR3lJb2pXdGp6UlcxMldsSUxWS0V1VFh1WWtTT1dGVll0ZG5rT3doWHI0MTAyUURWQ3dVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzY0MjMzOTgyCWZpbGU6Y29sbGVjdC5hcHAudGFyLmd6CjF0aFQ3OUpYbVlqWGgwZ0w1WUJtS1czQms4bUFxbjBGWnlCcHhqSU1UY3k3Q1NndDVIZVRvQXB5QkhVQVJqRDJLLzNiaTYvYnZjWi9NU1dMOENuQUJRPT0K",
+      "url": "https://github.com/yu7400ki/moocs-collect/releases/download/app-v1.0.1/collect_x64.app.tar.gz"
+    },
+    "darwin-x86_64-app": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRU09jRGhmQzBmSjhnRmY0Qnhld2pud2VzbmM0YitqWlVtODJWVWV6bG16R25UR3lJb2pXdGp6UlcxMldsSUxWS0V1VFh1WWtTT1dGVll0ZG5rT3doWHI0MTAyUURWQ3dVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzY0MjMzOTgyCWZpbGU6Y29sbGVjdC5hcHAudGFyLmd6CjF0aFQ3OUpYbVlqWGgwZ0w1WUJtS1czQms4bUFxbjBGWnlCcHhqSU1UY3k3Q1NndDVIZVRvQXB5QkhVQVJqRDJLLzNiaTYvYnZjWi9NU1dMOENuQUJRPT0K",
+      "url": "https://github.com/yu7400ki/moocs-collect/releases/download/app-v1.0.1/collect_x64.app.tar.gz"
+    },
+    "darwin-aarch64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRU09jRGhmQzBmSjl3WW5XNkw4NEZaN09DNUNyc0tqMkNZQkEyc3FpSTZObjFDbTk3NE5MMEhuUmw0dzhzQ2RWcjRSKzR4Tm5NOUhYTHZ5ckdtaThqaG5ISGN6UTBScndzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzY0MjM0MjE4CWZpbGU6Y29sbGVjdC5hcHAudGFyLmd6CjhlNmdvYTNwNmZ0aDRUeTBwZStqdjYxblI1aGZtWWNJT05JVk5GbzFYM2oyeWxCa1ZjU29lOTIvcG9SUVJvSlBHYkJHejJwdk1QVFFhaFJxL201OEN3PT0K",
+      "url": "https://github.com/yu7400ki/moocs-collect/releases/download/app-v1.0.1/collect_aarch64.app.tar.gz"
+    },
+    "darwin-aarch64-app": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRU09jRGhmQzBmSjl3WW5XNkw4NEZaN09DNUNyc0tqMkNZQkEyc3FpSTZObjFDbTk3NE5MMEhuUmw0dzhzQ2RWcjRSKzR4Tm5NOUhYTHZ5ckdtaThqaG5ISGN6UTBScndzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzY0MjM0MjE4CWZpbGU6Y29sbGVjdC5hcHAudGFyLmd6CjhlNmdvYTNwNmZ0aDRUeTBwZStqdjYxblI1aGZtWWNJT05JVk5GbzFYM2oyeWxCa1ZjU29lOTIvcG9SUVJvSlBHYkJHejJwdk1QVFFhaFJxL201OEN3PT0K",
+      "url": "https://github.com/yu7400ki/moocs-collect/releases/download/app-v1.0.1/collect_aarch64.app.tar.gz"
+    },
+    "linux-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRU09jRGhmQzBmSjF6ZFZQR3JWbjZHOU1Md1F0SENVL2VnR1ZZQmZPK2ZkMURLbDFwc3diLzQ3Qll6aVpEcDhFSGx1aHhBdklDSWpqZFZzdEJCM2wwSVZ4YlRGdXhlVHdZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzY0MjM0MzAyCWZpbGU6Y29sbGVjdF8xLjAuMV9hbWQ2NC5BcHBJbWFnZQpBR2NhMmNDeUIrNWxKSW04NitjOHVZTElsQWh2QUhyR0xYdGE2Qlh0UUtrTWlhWWxIQytSTm5zVWRpY3d6WExMU0NPRzltTG1sVU9kRlhuNEk3UWVDUT09Cg==",
+      "url": "https://github.com/yu7400ki/moocs-collect/releases/download/app-v1.0.1/collect_1.0.1_amd64.AppImage"
+    },
+    "linux-x86_64-appimage": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRU09jRGhmQzBmSjF6ZFZQR3JWbjZHOU1Md1F0SENVL2VnR1ZZQmZPK2ZkMURLbDFwc3diLzQ3Qll6aVpEcDhFSGx1aHhBdklDSWpqZFZzdEJCM2wwSVZ4YlRGdXhlVHdZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzY0MjM0MzAyCWZpbGU6Y29sbGVjdF8xLjAuMV9hbWQ2NC5BcHBJbWFnZQpBR2NhMmNDeUIrNWxKSW04NitjOHVZTElsQWh2QUhyR0xYdGE2Qlh0UUtrTWlhWWxIQytSTm5zVWRpY3d6WExMU0NPRzltTG1sVU9kRlhuNEk3UWVDUT09Cg==",
+      "url": "https://github.com/yu7400ki/moocs-collect/releases/download/app-v1.0.1/collect_1.0.1_amd64.AppImage"
+    },
+    "linux-x86_64-deb": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRU09jRGhmQzBmSitkQmhEc1M5S0NpSVNacnVBdnBUYWZVdlRKZklzWHhVeWpnb2owTGxrT1lZYzY5enVRMit4UEtyakQrVDVIeHNPWHUxRGxsbEJ4eExWcnJrMnZEYVFvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzY0MjM0MzAyCWZpbGU6Y29sbGVjdF8xLjAuMV9hbWQ2NC5kZWIKVEpIVWdQVTF5dG9kZmdveXNaSkZnalBWeTRMTlRENjVUMmhIaHRzZk16bHdGSmFzQ2tBVW13MkxzZlNZaUFZcmpGL05GRGJ0N2Z4djNpT0ptNUwwQ2c9PQo=",
+      "url": "https://github.com/yu7400ki/moocs-collect/releases/download/app-v1.0.1/collect_1.0.1_amd64.deb"
+    },
+    "linux-x86_64-rpm": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRU09jRGhmQzBmSnhaVzA0WC9sb0dXdllYVFZkYThVYlBTMVdQSTA1SUd4UzRXQm1zaVpqRW5jeGRqb0NEM0c1S3VNcXdSNk5xcm1nQ0FMRW9LMWZkNW96WisrMkc5NUFJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzY0MjM0MzAyCWZpbGU6Y29sbGVjdC0xLjAuMS0xLng4Nl82NC5ycG0KUmgyOXQ4aWlzMSs1L0JnbUFDWE1RbGczaU1sTm10SXpFTVNvcVBNU2RmcDN3NXZqVXM1bWgwOUVQTC94ZVNYYW53SUtpNE00RVVCdmxNd2pzQXNXQmc9PQo=",
+      "url": "https://github.com/yu7400ki/moocs-collect/releases/download/app-v1.0.1/collect-1.0.1-1.x86_64.rpm"
+    },
+    "windows-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRU09jRGhmQzBmSi9mUXEwLzFDWGVZTU9oN1VjRkJoZEl3V2ZwaGJsc3BrSFIzcEl0Q0dVdmJucEVKcm1zeTFQbnIvV3A1MWtRL3RsSU4raStmQ29ma0wzL3JQRnQrVkFVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzY0MjM0MzUyCWZpbGU6Y29sbGVjdF8xLjAuMV94NjRfZW4tVVMubXNpCk5XSnpZOXlNcTFpUU9VQkdYRUhlRWZwUDk1NkNxOXE0QnQ0U2ZmQ29KM2hnYlFOK3hiclJxMTlMRXBjRHFVYzlBUEl5WWpTSlk3QU9SNmNxYlZaT0R3PT0K",
+      "url": "https://github.com/yu7400ki/moocs-collect/releases/download/app-v1.0.1/collect_1.0.1_x64_en-US.msi"
+    },
+    "windows-x86_64-msi": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRU09jRGhmQzBmSi9mUXEwLzFDWGVZTU9oN1VjRkJoZEl3V2ZwaGJsc3BrSFIzcEl0Q0dVdmJucEVKcm1zeTFQbnIvV3A1MWtRL3RsSU4raStmQ29ma0wzL3JQRnQrVkFVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzY0MjM0MzUyCWZpbGU6Y29sbGVjdF8xLjAuMV94NjRfZW4tVVMubXNpCk5XSnpZOXlNcTFpUU9VQkdYRUhlRWZwUDk1NkNxOXE0QnQ0U2ZmQ29KM2hnYlFOK3hiclJxMTlMRXBjRHFVYzlBUEl5WWpTSlk3QU9SNmNxYlZaT0R3PT0K",
+      "url": "https://github.com/yu7400ki/moocs-collect/releases/download/app-v1.0.1/collect_1.0.1_x64_en-US.msi"
+    },
+    "windows-x86_64-nsis": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRU09jRGhmQzBmSnd6ZE1Cd2dQbEpBa1lwOWFsSkx6OXMvUnhEQk0rUVRac2JKZjhKeEZ4cFM3L1FHOUhHZ0p0MzhCcy9La1VDRGJNWHlwSmRBV1BTK2pubHdoRVZhTHdBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzY0MjM0MzUzCWZpbGU6Y29sbGVjdF8xLjAuMV94NjQtc2V0dXAuZXhlCms0cEg1Z2lnQ0R1UzlUWjhyT3N5NzRaTEhuTWc4ZTJNSDdWNElYMEZyTjFUMEtIZWQ4c2VvRFo1cEFvbDFyVER2K0Y0SHZvY2ZoNmJnOWdFcExzOUNnPT0K",
+      "url": "https://github.com/yu7400ki/moocs-collect/releases/download/app-v1.0.1/collect_1.0.1_x64-setup.exe"
+    }
+  }
+}

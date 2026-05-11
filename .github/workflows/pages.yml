@@ -70,7 +70,7 @@ jobs:
       - name: Upload to GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:
-          path: apps/website/dist/client
+          path: apps/website/dist/public
 
   deploy:
     environment:
