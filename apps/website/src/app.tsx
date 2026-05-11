@@ -1,16 +1,22 @@
 import { route } from "@funstack/router/server";
 import { Client } from "./client";
-import Empty from "./pages/empty";
+import { PageLayout } from "./components/page-layout";
+import Guide from "./pages/guide";
 import Home from "./pages/home";
 
 export const routes = [
   route({
-    path: "/",
-    component: <Home />,
-  }),
-  route({
-    path: "/guide",
-    component: <Empty />,
+    component: PageLayout,
+    children: [
+      route({
+        path: "/",
+        component: <Home />,
+      }),
+      route({
+        path: "/guide",
+        component: <Guide />,
+      }),
+    ],
   }),
 ];
 

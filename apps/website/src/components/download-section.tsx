@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { LatestRelease, Platform } from "../types/release";
 import { type DetectedOS, detectUserOS } from "../utils/detect-os";
@@ -87,6 +88,15 @@ export function DownloadSection({ latestRelease }: Props) {
               />
             ))}
           </div>
+        )}
+        {userOS.state === "fulfilled" && userOS.data?.os === "macOS" && (
+          <a
+            href="/guide"
+            className="inline-flex items-center gap-2 text-sm text-slate-400 transition hover:text-sky-300"
+          >
+            <Info className="h-4 w-4" />
+            Mac をご利用の方は注意事項をご確認ください
+          </a>
         )}
       </div>
 
