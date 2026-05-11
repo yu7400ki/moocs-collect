@@ -23,7 +23,7 @@ INIAD Moocs から授業スライドを効率的にダウンロードするた�
 [ホームページ](https://yu7400ki.github.io/moocs-collect) から最新版をダウンロードしてください。
 
 - Windows: `.msi` または `.exe` ファイル
-- macOS: `.dmg` または `.tar.gz` ファイル
+- macOS: `.dmg` または `.tar.gz` ファイル（初回起動時は[注意事項](https://yu7400ki.github.io/moocs-collect/guide)をご確認ください）
 - Linux: `.AppImage` または `.deb`、`.rpm` ファイル
 
 [GitHubリリースページ](https://github.com/yu7400ki/moocs-collect/releases)からも直接ダウンロード可能です。
