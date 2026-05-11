@@ -3,6 +3,7 @@
 import { Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { LatestRelease, Platform } from "../types/release";
+import { basePath } from "../utils/base-path";
 import { type DetectedOS, detectUserOS } from "../utils/detect-os";
 import { DownloadButton } from "./download-button";
 
@@ -91,7 +92,7 @@ export function DownloadSection({ latestRelease }: Props) {
         )}
         {userOS.state === "fulfilled" && userOS.data?.os === "macOS" && (
           <a
-            href={`${import.meta.env.BASE_URL}guide`}
+            href={basePath("/guide")}
             className="inline-flex items-center gap-2 text-sm text-slate-400 transition hover:text-sky-300"
           >
             <Info className="h-4 w-4" />

@@ -1,5 +1,6 @@
 import { ArrowUpRight, Download, FileText, Info, Search } from "lucide-react";
 import { DownloadSection } from "../components/download-section";
+import { basePath } from "../utils/base-path";
 import { getLatestRelease } from "../utils/get-release";
 
 export default async function Home() {
@@ -19,7 +20,7 @@ export default async function Home() {
           </div>
           <div className="flex items-center gap-6">
             <a
-              href={`${import.meta.env.BASE_URL}guide`}
+              href={basePath("/guide")}
               className="group inline-flex items-center gap-2 text-sm font-medium text-slate-200 transition hover:text-sky-300"
             >
               <Info className="h-4 w-4" />

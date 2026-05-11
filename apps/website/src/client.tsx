@@ -1,15 +1,13 @@
 "use client";
 
 import { type RouteDefinition, Router } from "@funstack/router";
-
-// Strip trailing slash so concatenation works: "/base" + "/path" = "/base/path"
-const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+import { base } from "./utils/base-path";
 
 // RouteDefinition is opaque but shares the same runtime shape as the internal type.
 function prefixRoutes(routes: RouteDefinition[]): RouteDefinition[] {
   return (routes as any[]).map((r) => ({
     ...r,
-    ...(r.path !== undefined && { path: BASE + r.path }),
+    ...(r.path !== undefined && { path: base + r.path }),
     ...(r.children && { children: prefixRoutes(r.children) }),
   }));
 }
@@ -25,7 +23,7 @@ export function Client({
     <Router
       routes={prefixRoutes(routes)}
       fallback="static"
-      ssr={ssrPath !== undefined ? { path: BASE + ssrPath } : undefined}
+      ssr={ssrPath !== undefined ? { path: base + ssrPath } : undefined}
     />
   );
 }

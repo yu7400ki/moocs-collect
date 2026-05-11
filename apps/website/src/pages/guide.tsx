@@ -2,6 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import collectNotOpened from "../assets/collect-not-opened.png";
 import openCollect from "../assets/open-collect.png";
 import privacyAndSecurity from "../assets/privacy-and-security.png";
+import { basePath } from "../utils/base-path";
 
 const steps = [
   {
@@ -42,7 +43,7 @@ export default function Guide() {
             <p className="text-sm text-slate-400">Mac インストール注意事項</p>
           </div>
           <a
-            href={import.meta.env.BASE_URL}
+            href={basePath("/")}
             className="group inline-flex items-center gap-2 text-sm font-medium text-slate-200 transition hover:text-sky-300"
           >
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
