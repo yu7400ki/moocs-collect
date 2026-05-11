@@ -7,8 +7,7 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     funstackStatic({
-      root: "./src/root.tsx",
-      app: "./src/app.tsx",
+      entries: "./src/entries.tsx",
       ssr: true,
     }),
     react(),

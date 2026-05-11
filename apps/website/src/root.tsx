@@ -1,4 +1,5 @@
 import type React from "react";
+import styles from "./index.css?url";
 
 export default function Root({ children }: { children: React.ReactNode }) {
   return (
@@ -6,6 +7,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href={styles} />
         <meta
           name="description"
           content="講義資料はすべて手元に。オフラインでも迷わない準備を。"

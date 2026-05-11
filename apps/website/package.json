@@ -12,6 +12,7 @@
     "format": "biome check --write"
   },
   "dependencies": {
+    "@funstack/router": "^1.1.0",
     "@funstack/static": "^1.2.0",
     "@lucide/lab": "^0.1.2",
     "lucide-react": "^1.14.0",
