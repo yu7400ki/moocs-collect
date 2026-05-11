@@ -19,7 +19,7 @@ export default async function Home() {
           </div>
           <div className="flex items-center gap-6">
             <a
-              href="/guide"
+              href={`${import.meta.env.BASE_URL}guide`}
               className="group inline-flex items-center gap-2 text-sm font-medium text-slate-200 transition hover:text-sky-300"
             >
               <Info className="h-4 w-4" />

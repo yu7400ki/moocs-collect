@@ -91,7 +91,7 @@ export function DownloadSection({ latestRelease }: Props) {
         )}
         {userOS.state === "fulfilled" && userOS.data?.os === "macOS" && (
           <a
-            href="/guide"
+            href={`${import.meta.env.BASE_URL}guide`}
             className="inline-flex items-center gap-2 text-sm text-slate-400 transition hover:text-sky-300"
           >
             <Info className="h-4 w-4" />
