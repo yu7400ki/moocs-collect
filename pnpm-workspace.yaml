@@ -1,5 +1,9 @@
 packages:
   - apps/*
 
+allowBuilds:
+  '@biomejs/biome': true
+  esbuild: true
+
 patchedDependencies:
   '@park-ui/panda-preset': patches/@park-ui__panda-preset.patch

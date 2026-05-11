@@ -13,20 +13,20 @@
   },
   "dependencies": {
     "@lucide/lab": "^0.1.2",
-    "lucide-react": "^0.479.0",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "tailwindcss": "^4.1.13"
+    "lucide-react": "^1.14.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "tailwindcss": "^4.3.0"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.13",
-    "@types/react": "^19.1.13",
-    "@types/react-dom": "^19.1.9",
+    "@tailwindcss/postcss": "^4.3.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "latest",
     "@vitejs/plugin-rsc": "latest",
-    "postcss": "^8.5.6",
+    "postcss": "^8.5.14",
     "rsc-html-stream": "^0.0.7",
-    "typescript": "^5.8.2",
-    "vite": "^7.1.6"
+    "typescript": "^6.0.3",
+    "vite": "^8.0.12"
   }
 }
