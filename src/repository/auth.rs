@@ -164,16 +164,38 @@ impl AuthenticationRepository for AuthenticationRepositoryImpl {
             .send()
             .await?;
 
+        // レスポンス URL を base として保持（後続の相対 URL 解決に使う）
+        let base_url = response.url().clone();
         let body = response.text().await?;
         let regex = Regex::new(r#"<a\s+(?:[^>]*?\s+)?href="([^"]*)""#).unwrap();
-        let href = regex.captures(&body).unwrap().get(1).unwrap().as_str();
-        let response = self.client.get(href.replace("&amp;", "&")).send().await?;
+        let href = regex
+            .captures(&body)
+            .and_then(|c| c.get(1))
+            .map(|m| m.as_str())
+            .ok_or_else(|| {
+                CollectError::parse("Google login: continue link not found", None)
+            })?;
+        // continue リンクは相対 URL のことがあるため base に対して解決する
+        let href_url = base_url
+            .join(&href.replace("&amp;", "&"))
+            .map_err(|e| {
+                CollectError::parse("Google login: invalid continue URL", Some(e.to_string()))
+            })?;
+        let response = self.client.get(href_url).send().await?;
 
+        let base_url = response.url().clone();
         let body = response.text().await?;
         let regex =
             Regex::new(r#"<meta\s+http-equiv="refresh"\s+content=".*\s+url=(.*?)">"#).unwrap();
-        let url = regex.captures(&body).unwrap().get(1).unwrap().as_str();
-        self.client.get(url.replace("&amp;", "&")).send().await?;
+        // Google の新しい v3/signin/continue フローは meta refresh の url が相対パス
+        // （例: /v3/signin/continue?...）になるため、絶対 URL に解決してから遷移する。
+        // refresh が無い場合はこの時点で既にログイン済みとみなしてスキップする。
+        if let Some(url) = regex.captures(&body).and_then(|c| c.get(1)).map(|m| m.as_str()) {
+            let refresh_url = base_url.join(&url.replace("&amp;", "&")).map_err(|e| {
+                CollectError::parse("Google login: invalid refresh URL", Some(e.to_string()))
+            })?;
+            self.client.get(refresh_url).send().await?;
+        }
 
         if self.is_logged_in_google().await? {
             Ok(())
