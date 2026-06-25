@@ -9,6 +9,11 @@ use scraper::Html;
 use std::sync::Arc;
 use std::time::Duration;
 
+fn resolve_url(base: &reqwest::Url, target: &str) -> Result<reqwest::Url> {
+    base.join(target)
+        .map_err(|e| CollectError::parse(format!("Invalid URL '{target}'"), Some(e.to_string())))
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 enum AuthCacheKey {
     MoocsAuth,
@@ -84,11 +89,13 @@ impl AuthenticationRepository for AuthenticationRepositoryImpl {
         if response_url == "https://moocs.iniad.org/courses" {
             return Ok(());
         }
+        let base_url = response.url().clone();
         let body = response.text().await?;
         let document = Html::parse_document(&body);
         let action =
             extract_element_attribute(&document.root_element(), "form.form-signin", "action")?;
-        self.login_with_form(&action, credentials).await?;
+        let action = resolve_url(&base_url, &action)?;
+        self.login_with_form(action.as_str(), credentials).await?;
         if self.is_logged_in_moocs().await? {
             Ok(())
         } else {
@@ -101,13 +108,16 @@ impl AuthenticationRepository for AuthenticationRepositoryImpl {
     async fn login_google(&self, credentials: &Credentials) -> Result<()> {
         let login_url = "https://accounts.google.com/samlredirect?domain=iniad.org";
         let response = self.client.get(login_url).send().await?;
+        let mut base_url = response.url().clone();
         let body = response.text().await?;
         let mut document = Html::parse_document(&body);
         let action =
             { extract_element_attribute(&document.root_element(), "form.form-signin", "action") };
         if action.is_ok() {
             let action = action?;
-            let response = self.login_with_form(&action, credentials).await?;
+            let action = resolve_url(&base_url, &action)?;
+            let response = self.login_with_form(action.as_str(), credentials).await?;
+            base_url = response.url().clone();
             let body = response.text().await?;
             let error_message = "Invalid username or password.";
             if body.contains(error_message) {
@@ -132,9 +142,10 @@ impl AuthenticationRepository for AuthenticationRepositoryImpl {
                 extract_element_attribute(&root_element, "input[name='RelayState']", "value")?,
             )
         };
+        let action = resolve_url(&base_url, &action)?;
         let response = self
             .client
-            .post(&action)
+            .post(action)
             .form(&[
                 ("SAMLResponse", &saml_response),
                 ("RelayState", &relay_state),
@@ -142,6 +153,7 @@ impl AuthenticationRepository for AuthenticationRepositoryImpl {
             .send()
             .await?;
 
+        let base_url = response.url().clone();
         let body = response.text().await?;
         let document = Html::parse_document(&body);
         let (action, relay_state, saml_response, trampoline) = {
@@ -153,9 +165,10 @@ impl AuthenticationRepository for AuthenticationRepositoryImpl {
                 extract_element_attribute(&root_element, "input[name='trampoline']", "value")?,
             )
         };
+        let action = resolve_url(&base_url, &action)?;
         let response = self
             .client
-            .post(&action)
+            .post(action)
             .form(&[
                 ("RelayState", &relay_state),
                 ("SAMLResponse", &saml_response),
@@ -172,15 +185,9 @@ impl AuthenticationRepository for AuthenticationRepositoryImpl {
             .captures(&body)
             .and_then(|c| c.get(1))
             .map(|m| m.as_str())
-            .ok_or_else(|| {
-                CollectError::parse("Google login: continue link not found", None)
-            })?;
+            .ok_or_else(|| CollectError::parse("Google login: continue link not found", None))?;
         // continue リンクは相対 URL のことがあるため base に対して解決する
-        let href_url = base_url
-            .join(&href.replace("&amp;", "&"))
-            .map_err(|e| {
-                CollectError::parse("Google login: invalid continue URL", Some(e.to_string()))
-            })?;
+        let href_url = resolve_url(&base_url, &href.replace("&amp;", "&"))?;
         let response = self.client.get(href_url).send().await?;
 
         let base_url = response.url().clone();
@@ -190,10 +197,12 @@ impl AuthenticationRepository for AuthenticationRepositoryImpl {
         // Google の新しい v3/signin/continue フローは meta refresh の url が相対パス
         // （例: /v3/signin/continue?...）になるため、絶対 URL に解決してから遷移する。
         // refresh が無い場合はこの時点で既にログイン済みとみなしてスキップする。
-        if let Some(url) = regex.captures(&body).and_then(|c| c.get(1)).map(|m| m.as_str()) {
-            let refresh_url = base_url.join(&url.replace("&amp;", "&")).map_err(|e| {
-                CollectError::parse("Google login: invalid refresh URL", Some(e.to_string()))
-            })?;
+        if let Some(url) = regex
+            .captures(&body)
+            .and_then(|c| c.get(1))
+            .map(|m| m.as_str())
+        {
+            let refresh_url = resolve_url(&base_url, &url.replace("&amp;", "&"))?;
             self.client.get(refresh_url).send().await?;
         }
 
