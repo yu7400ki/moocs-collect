@@ -11,7 +11,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'apps/website/**'
+      - "apps/website/**"
   workflow_dispatch:
 
 jobs:
@@ -41,7 +41,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --filter=website
@@ -54,10 +54,10 @@ jobs:
             cp out/latest.json apps/website/public/latest.json
           else
             # Download existing latest.json for website-only builds
+            # Fail the workflow if the download fails (avoid deploying a stale committed copy)
             curl --retry 10 --retry-delay 5 --retry-all-errors -f -s \
               -o apps/website/public/latest.json \
-              https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/latest.json \
-              || echo "No existing latest.json found"
+              https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/latest.json
           fi
 
       - name: Configure GitHub Pages
