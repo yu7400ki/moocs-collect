@@ -161,32 +161,19 @@ async fn save_slides_from_pages<P: AsRef<Path> + Sync>(
     pages: &[LecturePage],
     path: P,
 ) -> anyhow::Result<()> {
-    let slides = futures::future::join_all(pages.iter().map(|page| collect.get_slides(&page.key)))
-        .await
-        .into_iter()
-        .collect::<Result<Vec<_>, _>>()?
-        .into_iter()
-        .filter(|slides| !slides.is_empty())
-        .collect::<Vec<_>>();
+    for page in pages {
+        let slides = collect.get_slides(&page.key).await?;
+        if slides.is_empty() {
+            continue;
+        }
 
-    let slide_contents = slides.iter().map(|slides| {
-        futures::future::join_all(slides.iter().map(|slide| collect.get_slide_content(slide)))
-    });
+        let contents = futures::future::join_all(slides.iter().map(|slide| collect.get_slide_content(slide)))
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?;
 
-    let contents = futures::future::join_all(slide_contents)
-        .await
-        .into_iter()
-        .map(|slides| slides.into_iter().collect::<Result<Vec<_>, _>>())
-        .collect::<Result<Vec<_>, _>>()?;
-
-    futures::future::join_all(
-        contents
-            .iter()
-            .map(|contents| save_slides(collect, contents, &path)),
-    )
-    .await
-    .into_iter()
-    .collect::<Result<(), _>>()?;
+        save_slides(collect, &contents, &path).await?;
+    }
 
     Ok(())
 }
